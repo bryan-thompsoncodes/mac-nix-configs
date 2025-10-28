@@ -3,6 +3,10 @@
 {
   programs.git = {
     enable = true;
+    signing = {
+      key = "9175041E4A046A5E";
+      signByDefault = true;
+    };
     settings = {
       user = {
         name = "Bryan Thompson";
