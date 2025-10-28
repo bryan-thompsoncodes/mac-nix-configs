@@ -10,6 +10,9 @@
     git
   ];
 
+  # Add Homebrew to system PATH
+  environment.systemPath = [ "/opt/homebrew/bin" ];
+
   # Zsh configuration
   programs.zsh.enable = true;
 
@@ -40,7 +43,7 @@
     ];
 
     brews = [
-      # DDEV local development environment
+      # DDEV for va.gov-cms development
       "ddev/ddev/ddev"
     ];
 
