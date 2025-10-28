@@ -16,5 +16,6 @@
     watch
     unzip
     zip
+    ttyper
   ];
 }
