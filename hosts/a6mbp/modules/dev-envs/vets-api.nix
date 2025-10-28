@@ -60,7 +60,7 @@ pkgs.mkShell {
     echo "📦 Next steps:"
     echo "  1. Run 'redis-start' to start Redis"
     echo "  2. Run 'bundle install' to install Ruby gems"
-    echo "  3. Run 'bundle exec rails server' to start the API server"
+    echo "  3. Run 'foreman start -m all=1,clamd=0,freshclam=0' to start the API server"
     echo ""
     echo "💡 Helper commands: redis-start, redis-stop"
     echo ""
