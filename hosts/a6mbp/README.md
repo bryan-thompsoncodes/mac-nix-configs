@@ -29,7 +29,7 @@ a6mbp/
 From anywhere:
 
 ```bash
-darwin-rebuild switch --flake ~/code/mac-nix-configs/hosts/a6mbp
+darwin-rebuild switch --flake ~/code/mac-nix-configs#a6mbp
 ```
 
 Or use the alias:
@@ -38,14 +38,14 @@ Or use the alias:
 rebuild
 ```
 
-**Note**: The aliases assume the repo is at `~/code/mac-nix-configs`. If you cloned elsewhere, update the paths in `modules/programs/zsh.nix`.
+**Note**: The configuration is managed from the root `flake.nix`, not a per-host flake. The `#a6mbp` specifies which host configuration to use and doesn't need to match your system hostname.
 
 ### Update Flake Inputs
 
 ```bash
-cd ~/code/mac-nix-configs/hosts/a6mbp
+cd ~/code/mac-nix-configs
 nix flake update
-darwin-rebuild switch --flake ~/code/mac-nix-configs/hosts/a6mbp
+darwin-rebuild switch --flake ~/code/mac-nix-configs#a6mbp
 ```
 
 Or use the alias:
@@ -67,6 +67,9 @@ update
 
 ## Notes
 
-- The flake references `../../darwin.nix` for system-level Darwin configuration
+- This host is configured in the root `flake.nix` as `darwinConfigurations.a6mbp`
+- The configuration name (`a6mbp`) is independent of the system hostname
+- The root flake references `../../darwin.nix` for system-level Darwin configuration
 - Home Manager is integrated via the `home-manager.darwinModules.home-manager` module
 - All user-specific configuration is modularized for easier maintenance
+- Single `flake.lock` at the root ensures consistent package versions across all hosts

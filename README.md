@@ -125,15 +125,10 @@ The configuration is designed for Apple Silicon (aarch64) Macs and provides a fu
 3. **Build and activate the configuration**:
 
    ```bash
-   cd hosts/a6mbp
-   darwin-rebuild switch --flake .
+   darwin-rebuild switch --flake .#a6mbp
    ```
 
-   Or from the root:
-
-   ```bash
-   darwin-rebuild switch --flake ./hosts/a6mbp
-   ```
+   The `#a6mbp` specifies which host configuration to use from the flake.
 
 ### Post-Installation
 
@@ -161,7 +156,7 @@ rebuild
 Or explicitly:
 
 ```bash
-darwin-rebuild switch --flake ~/code/mac-nix-configs/hosts/a6mbp
+darwin-rebuild switch --flake ~/code/mac-nix-configs#a6mbp
 ```
 
 ### Updating Dependencies
@@ -175,9 +170,9 @@ update
 Or manually:
 
 ```bash
-cd ~/code/mac-nix-configs/hosts/a6mbp
+cd ~/code/mac-nix-configs
 nix flake update
-darwin-rebuild switch --flake .
+darwin-rebuild switch --flake .#a6mbp
 ```
 
 ### Useful Aliases
@@ -287,10 +282,28 @@ homebrew = {
 
 To set up configuration for another Mac:
 
-1. Copy `hosts/a6mbp` to a new directory (e.g., `hosts/macbook-air`)
-2. Update the `darwinConfigurations` name in the new `flake.nix`
-3. Customize the configuration for that host
-4. Build with: `darwin-rebuild switch --flake ./hosts/macbook-air`
+1. Copy `hosts/a6mbp` to a new directory (e.g., `hosts/work-macbook`)
+2. Add a new configuration in the root `flake.nix`:
+   ```nix
+   darwinConfigurations = {
+     a6mbp = nix-darwin.lib.darwinSystem { ... };  # existing
+     work-macbook = nix-darwin.lib.darwinSystem {
+       inherit system;
+       modules = [
+         ./darwin.nix
+         home-manager.darwinModules.home-manager
+         {
+           home-manager.users.bryan = import ./hosts/work-macbook/home.nix;
+           # ... other config
+         }
+       ];
+     };
+   };
+   ```
+3. Customize the host-specific configuration in `hosts/work-macbook/`
+4. Build with: `darwin-rebuild switch --flake .#work-macbook`
+
+**Note**: The configuration name (e.g., `a6mbp`) doesn't need to match your system hostname.
 
 ## Key Configuration Details
 

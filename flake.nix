@@ -20,7 +20,7 @@
     system = "aarch64-darwin";
   in
   {
-    darwinConfigurations."Bryan-Thompson" = nix-darwin.lib.darwinSystem {
+    darwinConfigurations.a6mbp = nix-darwin.lib.darwinSystem {
       inherit system;
 
       modules = [

@@ -116,8 +116,8 @@
     # Aliases
     shellAliases = {
       # Nix management
-      rebuild = "sudo darwin-rebuild switch --flake ~/code/mac-nix-configs/hosts/a6mbp";
-      update = "cd ~/code/mac-nix-configs/hosts/a6mbp && nix flake update && sudo darwin-rebuild switch --flake ~/code/mac-nix-configs/hosts/a6mbp";
+      rebuild = "sudo darwin-rebuild switch --flake ~/code/mac-nix-configs#a6mbp";
+      update = "cd ~/code/mac-nix-configs && nix flake update && sudo darwin-rebuild switch --flake ~/code/mac-nix-configs#a6mbp";
 
       # Git shortcuts
       gs = "git status";
