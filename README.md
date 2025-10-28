@@ -343,6 +343,7 @@ To set up configuration for another Mac:
 
 - This configuration uses **Determinate Nix**, so nix-darwin's Nix management is disabled
 - Homebrew is managed **declaratively** - packages not in the config will be uninstalled
+- **SSH configuration is NOT managed by Nix** - We use `vtk socks` for VA work, which dynamically writes to `~/.ssh/config`. Managing SSH with Nix creates conflicts with vtk's configuration. Manage `~/.ssh/config` manually instead.
 
 ## Troubleshooting
 

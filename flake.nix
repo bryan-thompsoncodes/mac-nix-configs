@@ -59,6 +59,13 @@
           config.allowUnfree = true;
         };
       };
+
+      next-build = import ./hosts/a6mbp/modules/dev-envs/next-build.nix {
+        pkgs = import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+        };
+      };
     };
   };
 }
