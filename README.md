@@ -21,7 +21,7 @@ The configuration is designed for Apple Silicon (aarch64) Macs and provides a fu
 - **Languages**: Python 3.12, Java 11
 - **Editors**: Neovim (with custom configs), configured with vi/vim aliases
 - **Terminal**: Alacritty with Dracula-inspired theme
-- **Shell**: Zsh with Oh-My-Zsh, Powerlevel10k theme, and extensive aliases
+- **Shell**: Zsh with Powerlevel10k theme, auto-suggestions, syntax highlighting, and extensive aliases
 
 ### ☁️ Cloud & DevOps
 
@@ -48,8 +48,8 @@ The configuration is designed for Apple Silicon (aarch64) Macs and provides a fu
 
 - **Powerlevel10k** theme with Nerd Fonts
 - **Auto-suggestions** and **syntax highlighting**
-- **Git integration** with custom aliases
-- **Oh-My-Zsh plugins**: git, macos, docker, kubectl, npm, yarn, node, python, aws
+- **Git integration** with extensive custom aliases
+- **Enhanced completions** with case-insensitive matching and colored output
 
 ## Repository Structure
 
@@ -132,13 +132,16 @@ The configuration is designed for Apple Silicon (aarch64) Macs and provides a fu
 
 ### Post-Installation
 
-1. **Configure Powerlevel10k**: If you don't have a `.p10k.zsh` file, run:
+1. **Configure Powerlevel10k** (if needed):
 
    ```bash
    p10k configure
    ```
 
+   Configuration is stored in `~/.local/share/p10k/p10k.zsh`.
+
 2. **Restart your terminal** or reload the shell:
+
    ```bash
    exec zsh
    ```
@@ -190,13 +193,20 @@ The configuration includes many convenient aliases:
 **Git**:
 
 ```bash
+ga      # git add
+gd      # git diff
 gs      # git status
+gst     # git status (alias)
 gp      # git push
+gpl     # git pull
+gl      # git log --oneline --graph
 gco     # git checkout
 gcob    # git checkout -b
 gaa     # git add --all
 gcm     # git commit -m
-gl      # git log --oneline --graph
+gbd     # git branch -d
+gbD     # git branch -D
+gpF     # git push --force
 grb     # interactive rebase (default: last 3 commits)
 ```
 
@@ -206,6 +216,8 @@ grb     # interactive rebase (default: last 3 commits)
 ls      # eza --icons
 ll      # eza -lah --icons
 la      # eza -a --icons
+lla     # eza -la
+lsa     # eza -lah
 lt      # eza --tree --icons
 cat     # bat (with syntax highlighting)
 ```
@@ -323,7 +335,7 @@ To set up configuration for another Mac:
 ### Terminal Setup
 
 - **Alacritty**: GPU-accelerated terminal with custom theme and opacity
-- **Zsh**: Enhanced with Oh-My-Zsh, Powerlevel10k, auto-suggestions, and syntax highlighting
+- **Zsh**: Powerlevel10k theme, auto-suggestions, syntax highlighting, and enhanced completions (no Oh-My-Zsh for faster startup)
 - **Tmux**: Vi key bindings, 256 color support, integration with dotfiles
 - **Neovim**: Set as default editor, managed plugins via Lazy.nvim (external)
 
@@ -331,10 +343,6 @@ To set up configuration for another Mac:
 
 - This configuration uses **Determinate Nix**, so nix-darwin's Nix management is disabled
 - Homebrew is managed **declaratively** - packages not in the config will be uninstalled
-- The `cleanup = "zap"` setting in Homebrew removes all packages not declared in the config
-- Git user information should be updated in `hosts/a6mbp/modules/programs/git.nix`
-- Powerlevel10k configuration (`.p10k.zsh`) is preserved outside of this repo
-- System state version is set to 4 (nix-darwin)
 
 ## Troubleshooting
 
