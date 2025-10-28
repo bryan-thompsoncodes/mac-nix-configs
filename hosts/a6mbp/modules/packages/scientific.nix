@@ -5,5 +5,6 @@
     # Scientific/Data
     hdf5
     netcdf
+    vtk
   ];
 }
