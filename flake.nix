@@ -66,6 +66,13 @@
           config.allowUnfree = true;
         };
       };
+
+      component-library = import ./hosts/a6mbp/modules/dev-envs/component-library.nix {
+        pkgs = import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+        };
+      };
     };
   };
 }
