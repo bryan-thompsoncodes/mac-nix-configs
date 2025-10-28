@@ -37,8 +37,4 @@
 
   # Force overwrite existing config files
   xdg.configFile."alacritty/alacritty.toml".force = true;
-
-  # Preserve your p10k configuration
-  # Uncomment after backing up your .p10k.zsh
-  # home.file.".p10k.zsh".source = config.lib.file.mkOutOfStoreSymlink "/Users/bryan/.p10k.zsh.backup";
 }
