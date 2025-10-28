@@ -48,8 +48,17 @@
       ];
     };
 
-    devShells.${system}.vets-website = import ./hosts/a6mbp/modules/dev-envs/vets-website.nix {
-      pkgs = pkgs-2211;
+    devShells.${system} = {
+      vets-website = import ./hosts/a6mbp/modules/dev-envs/vets-website.nix {
+        pkgs = pkgs-2211;
+      };
+
+      vets-api = import ./hosts/a6mbp/modules/dev-envs/vets-api.nix {
+        pkgs = import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+        };
+      };
     };
   };
 }
