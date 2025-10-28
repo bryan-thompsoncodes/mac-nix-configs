@@ -17,5 +17,6 @@
     unzip
     zip
     ttyper
+    opencode
   ];
 }
