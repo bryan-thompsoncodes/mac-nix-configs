@@ -45,6 +45,20 @@
     brews = [
       # DDEV for va.gov-cms development
       "ddev/ddev/ddev"
+
+      # Zsh plugins
+      "powerlevel10k"
+      "zsh-autosuggestions"
+      "zsh-syntax-highlighting"
+
+      # CLI tools
+      "bat"
+      "eza"
+      "fzf"
+      "direnv"
+      "redis"
+      "libpq"
+      "ca-certificates"
     ];
 
     casks = [
