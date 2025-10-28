@@ -30,6 +30,9 @@ pkgs.mkShell {
 
     # Kafka for rdkafka gem
     pkgs.rdkafka
+
+    # PDF manipulation tool (required by pdf-forms gem)
+    pkgs.pdftk
   ];
 
   shellHook = ''
@@ -44,8 +47,8 @@ pkgs.mkShell {
     echo ""
 
     # Set up environment variables
-    # Ruby gem environment
-    export GEM_HOME="$PWD/.gem"
+    # Ruby gem environment - store gems outside repo to avoid git tracking
+    export GEM_HOME="$HOME/.local/share/gems/vets-api"
     export PATH="$GEM_HOME/bin:$PATH"
 
     # PostgreSQL and Redis settings (safe defaults)

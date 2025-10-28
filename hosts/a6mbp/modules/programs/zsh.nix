@@ -88,7 +88,7 @@
         yarn storybook
       }
       function vets-website-server {
-        local env=''${1:-static-pages}
+        local env=''${1:-static-pages,facilities}
         cd ~/code/department-of-veterans-affairs/vets-website
         yarn watch --env=''$env
       }
