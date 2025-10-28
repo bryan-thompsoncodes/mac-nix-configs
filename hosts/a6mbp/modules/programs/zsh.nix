@@ -39,6 +39,22 @@
       zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' # Case insensitive completion
       zstyle ':completion:*' list-colors "''${(s.:.)LS_COLORS}" # Colored completion
 
+      # Set terminal title to show current command
+      autoload -Uz add-zsh-hook
+
+      function set_title_precmd {
+        print -Pn "\e]0;%~\a"  # Set title to current directory
+      }
+
+      function set_title_preexec {
+        # Get the first word of the command (handles aliases, functions, etc.)
+        local cmd="''${1%% *}"
+        print -Pn "\e]0;$cmd\a"  # Set title to running command
+      }
+
+      add-zsh-hook precmd set_title_precmd
+      add-zsh-hook preexec set_title_preexec
+
       # VA Server Scripts
       function cl-storybook {
         cd ~/code/department-of-veterans-affairs/component-library/packages/web-components/
