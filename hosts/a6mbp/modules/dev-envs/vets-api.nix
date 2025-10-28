@@ -41,10 +41,6 @@ pkgs.mkShell {
     echo "Ruby version: $(ruby --version)"
     echo "Bundler version: $(bundle --version)"
     echo ""
-    echo "📦 Next steps:"
-    echo "  1. Run 'bundle install' to install Ruby gems"
-    echo "  2. Run 'bundle exec rails server' to start the API server"
-    echo ""
 
     # Set up environment variables
     # Ruby gem environment - store gems outside repo to avoid git tracking
@@ -54,5 +50,19 @@ pkgs.mkShell {
     # PostgreSQL and Redis settings (safe defaults)
     export PGHOST="localhost"
     export REDIS_HOST="localhost"
+    export REDIS_PORT="6379"
+
+    # Redis data directory
+    export REDIS_DIR="$PWD/tmp/redis"
+    mkdir -p "$REDIS_DIR"
+
+    echo ""
+    echo "📦 Next steps:"
+    echo "  1. Run 'redis-start' to start Redis"
+    echo "  2. Run 'bundle install' to install Ruby gems"
+    echo "  3. Run 'bundle exec rails server' to start the API server"
+    echo ""
+    echo "💡 Helper commands: redis-start, redis-stop"
+    echo ""
   '';
 }

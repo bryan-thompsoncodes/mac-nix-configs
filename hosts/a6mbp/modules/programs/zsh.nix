@@ -71,7 +71,7 @@
 
       # Server aliases
       alias -- content-build-server="vtk socks on && cd ~/code/department-of-veterans-affairs/content-build && yarn build --pull-drupal && yarn serve"
-      alias -- vets-api-server="cd ~/code/department-of-veterans-affairs/vets-api && foreman start -m all=1,clamd=0,freshclam=0"
+      alias -- vets-api-server="cd ~/code/department-of-veterans-affairs/vets-api && redis-start && foreman start -m all=1,clamd=0,freshclam=0"
       function cl-storybook {
         cd ~/code/department-of-veterans-affairs/component-library/packages/web-components/
         yarn install
