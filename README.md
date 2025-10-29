@@ -234,6 +234,36 @@ echo "use flake ~/code/mac-nix-configs#vets-website" > .envrc
 direnv allow
 ```
 
+### Automatic Direnv Setup for VA Repositories
+
+For a fresh workstation setup, use the included script to automatically create `.envrc` files for all VA repositories:
+
+```bash
+cd ~/code/mac-nix-configs
+./setup-envrc.sh
+```
+
+This interactive script will:
+
+- Check which VA repositories exist in `~/code/department-of-veterans-affairs/`
+- Identify which repos already have `.envrc` files
+- Create `.envrc` files for repos that need them
+- Show instructions for running `direnv allow` for each new configuration
+
+**Prerequisites:**
+
+- direnv must be installed (included in darwin.nix Homebrew packages)
+- VA repositories must be cloned (use `~/code/dotfiles/setup-va-repos.sh` first)
+
+**Repositories configured:**
+
+- `vets-website` → Node.js 14.15.0 environment
+- `next-build` → Node.js 24 environment
+- `vets-api` → Ruby 3.3.6 environment
+- `component-library` → Node.js 22 environment
+
+After running the script, the development environment will load automatically when you `cd` into any VA repository directory.
+
 ## Key Configuration Details
 
 ### System Settings (darwin.nix)
