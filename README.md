@@ -1,6 +1,6 @@
 # macOS Nix Configuration
 
-A declarative, reproducible macOS system configuration using Nix, nix-darwin, and Home Manager.
+A declarative, reproducible macOS system configuration using Nix and nix-darwin.
 
 ## Overview
 
@@ -8,8 +8,7 @@ This repository contains a complete macOS system configuration managed with:
 
 - **[Nix](https://nixos.org/)**: Declarative package management
 - **[nix-darwin](https://github.com/LnL7/nix-darwin)**: macOS system configuration
-- **[Home Manager](https://github.com/nix-community/home-manager)**: User environment management
-- **[Homebrew](https://brew.sh/)**: macOS-specific packages (managed declaratively)
+- **[Homebrew](https://brew.sh/)**: macOS-specific packages (managed declaratively via nix-darwin)
 - **Development Shells**: Project-specific environments with pinned dependencies
 
 The configuration is designed for Apple Silicon (aarch64) Macs and provides fully reproducible development environments.
@@ -19,10 +18,9 @@ The configuration is designed for Apple Silicon (aarch64) Macs and provides full
 ### 🎯 Development Tools
 
 - **Version Control**: Git, GitHub CLI
-- **Languages**: Python 3.12, Java 11
-- **Editors**: Neovim (with custom configs), configured with vi/vim aliases
-- **Terminal**: Alacritty with Dracula-inspired theme
-- **Shell**: Zsh with Powerlevel10k theme, auto-suggestions, syntax highlighting, and extensive aliases
+- **Editors**: Neovim (with custom configs), Vim
+- **Terminal**: Alacritty
+- **Shell**: Zsh with Powerlevel10k theme, auto-suggestions, and syntax highlighting (via Homebrew)
 - **Project Environments**: Pre-configured Nix shells for VA projects (vets-website, vets-api, next-build, component-library)
 
 ### ☁️ Cloud & DevOps
@@ -33,18 +31,16 @@ The configuration is designed for Apple Silicon (aarch64) Macs and provides full
 
 ### 🗄️ Databases & Services
 
-- PostgreSQL 16
-- Redis
-- Memcached
-- SQLite
+- Redis (via Homebrew)
+- PostgreSQL, Memcached, SQLite (available in project-specific dev-envs)
 
 ### 🛠️ CLI Utilities
 
 - **Modern replacements**: `eza` (ls), `bat` (cat), `ripgrep` (grep), `fd` (find)
-- **Productivity**: fzf, tmux, direnv
-- **Network**: curl, wget, socat, autossh
-- **Development**: tree, tldr, coreutils, gnupg, mkcert, prettier
-- **System**: htop, watch, unzip, zip
+- **Productivity**: fzf, tmux, direnv (via Homebrew)
+- **Network**: wget
+- **Development**: tree, gnupg (via Homebrew)
+- **System**: htop
 
 ### 🎨 Shell Experience
 
@@ -78,9 +74,11 @@ The configuration is designed for Apple Silicon (aarch64) Macs and provides full
 2. **nix-darwin**: Follow the [nix-darwin installation guide](https://github.com/LnL7/nix-darwin#readme)
 
 3. **Homebrew**: Install from [brew.sh](https://brew.sh)
+
    ```bash
    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
    ```
+
    Note: nix-darwin will manage Homebrew packages declaratively, but Homebrew itself must be installed first.
 
 4. Install Nix Flakes and Experimental Commands
@@ -99,8 +97,7 @@ The configuration is designed for Apple Silicon (aarch64) Macs and provides full
    cd ~/code/mac-nix-configs
    ```
 
-
-3. **Build and activate the configuration**:
+2. **Build and activate the configuration**:
 
    ```bash
    darwin-rebuild switch --flake .#darwin
@@ -153,57 +150,6 @@ Or manually:
 ```bash
 nix flake update
 darwin-rebuild switch --flake .#darwin
-```
-
-### Useful Aliases
-
-The configuration includes many convenient aliases:
-
-**Navigation**:
-
-```bash
-..      # cd ..
-...     # cd ../..
-....    # cd ../../..
-```
-
-**Git**:
-
-```bash
-ga      # git add
-gd      # git diff
-gs      # git status
-gst     # git status (alias)
-gp      # git push
-gpl     # git pull
-gl      # git log --oneline --graph
-gco     # git checkout
-gcob    # git checkout -b
-gaa     # git add --all
-gcm     # git commit -m
-gbd     # git branch -d
-gbD     # git branch -D
-gpF     # git push --force
-grb     # interactive rebase (default: last 3 commits)
-```
-
-**Modern Tools**:
-
-```bash
-ls      # eza --icons
-ll      # eza -lah --icons
-la      # eza -a --icons
-lla     # eza -la
-lsa     # eza -lah
-lt      # eza --tree --icons
-cat     # bat (with syntax highlighting)
-```
-
-**Development**:
-
-```bash
-vim     # nvim
-vi      # nvim
 ```
 
 ## Customization
@@ -339,15 +285,14 @@ direnv allow
 
 ### Conflicts with existing dotfiles
 
-- Home Manager backs up existing files with `.backup` extension
-- Check `~/.config/` for backup files
-- Manually merge or remove conflicting configurations
+- nix-darwin may conflict with existing configurations
+- Check `~/.config/` for any conflicting files
+- Manually merge or remove conflicting configurations as needed
 
 ## Resources
 
 - [Nix Manual](https://nixos.org/manual/nix/stable/)
 - [nix-darwin Documentation](https://daiderd.com/nix-darwin/manual/)
-- [Home Manager Manual](https://nix-community.github.io/home-manager/)
 - [Nixpkgs Package Search](https://search.nixos.org/packages)
 
 ## License
