@@ -10,8 +10,9 @@ This repository contains a complete macOS system configuration managed with:
 - **[nix-darwin](https://github.com/LnL7/nix-darwin)**: macOS system configuration
 - **[Home Manager](https://github.com/nix-community/home-manager)**: User environment management
 - **[Homebrew](https://brew.sh/)**: macOS-specific packages (managed declaratively)
+- **Development Shells**: Project-specific environments with pinned dependencies
 
-The configuration is designed for Apple Silicon (aarch64) Macs and provides a fully reproducible development environment.
+The configuration is designed for Apple Silicon (aarch64) Macs and provides fully reproducible development environments.
 
 ## Features
 
@@ -22,6 +23,7 @@ The configuration is designed for Apple Silicon (aarch64) Macs and provides a fu
 - **Editors**: Neovim (with custom configs), configured with vi/vim aliases
 - **Terminal**: Alacritty with Dracula-inspired theme
 - **Shell**: Zsh with Powerlevel10k theme, auto-suggestions, syntax highlighting, and extensive aliases
+- **Project Environments**: Pre-configured Nix shells for VA projects (vets-website, vets-api, next-build, component-library)
 
 ### ☁️ Cloud & DevOps
 
@@ -58,34 +60,11 @@ The configuration is designed for Apple Silicon (aarch64) Macs and provides a fu
 ├── flake.nix              # Main flake configuration
 ├── flake.lock             # Lock file for reproducible builds
 ├── darwin.nix             # System-level macOS configuration
-└── hosts/
-    └── a6mbp/             # Host-specific configuration
-        ├── flake.nix      # Host flake (references root darwin.nix)
-        ├── home.nix       # Home Manager entry point
-        └── modules/
-            ├── programs/  # Individual program configurations
-            │   ├── alacritty.nix
-            │   ├── bat.nix
-            │   ├── direnv.nix
-            │   ├── eza.nix
-            │   ├── fzf.nix
-            │   ├── git.nix
-            │   ├── neovim.nix
-            │   ├── ssh.nix
-            │   ├── tmux.nix
-            │   └── zsh.nix
-            └── packages/  # Categorized package lists
-                ├── build-tools.nix
-                ├── cloud.nix
-                ├── data.nix
-                ├── database.nix
-                ├── development.nix
-                ├── geospatial.nix
-                ├── media.nix
-                ├── network.nix
-                ├── scientific.nix
-                ├── shell.nix
-                └── utilities.nix
+└── dev-envs/              # Development environment shells
+    ├── component-library.nix
+    ├── next-build.nix
+    ├── vets-api.nix
+    └── vets-website.nix
 ```
 
 ## Prerequisites
@@ -120,20 +99,14 @@ The configuration is designed for Apple Silicon (aarch64) Macs and provides a fu
    cd ~/code/mac-nix-configs
    ```
 
-2. **Review and customize** the configuration:
-
-   - Update `hosts/a6mbp/modules/programs/git.nix` with your Git user info
-   - If you cloned to a different location, update the `rebuild` and `update` aliases in `hosts/a6mbp/modules/programs/zsh.nix`
-   - Customize other aliases in `hosts/a6mbp/modules/programs/zsh.nix` to your preferences
-   - Review package lists in `hosts/a6mbp/modules/packages/` and remove what you don't need
 
 3. **Build and activate the configuration**:
 
    ```bash
-   darwin-rebuild switch --flake .#a6mbp
+   darwin-rebuild switch --flake .#darwin
    ```
 
-   The `#a6mbp` specifies which host configuration to use from the flake.
+   The `#darwin` specifies which host configuration to use from the flake.
 
 ### Post-Installation
 
@@ -164,7 +137,7 @@ rebuild
 Or explicitly:
 
 ```bash
-darwin-rebuild switch --flake ~/code/mac-nix-configs#a6mbp
+darwin-rebuild switch --flake ~/code/mac-nix-configs#darwin
 ```
 
 ### Updating Dependencies
@@ -178,9 +151,8 @@ update
 Or manually:
 
 ```bash
-cd ~/code/mac-nix-configs
 nix flake update
-darwin-rebuild switch --flake .#a6mbp
+darwin-rebuild switch --flake .#darwin
 ```
 
 ### Useful Aliases
@@ -236,46 +208,43 @@ vi      # nvim
 
 ## Customization
 
-### Adding New Programs
+### Adding Development Environments
 
-1. Create a new file in `hosts/a6mbp/modules/programs/`:
-
-   ```nix
-   # hosts/a6mbp/modules/programs/myprogram.nix
-   { config, pkgs, ... }:
-
-   {
-     programs.myprogram = {
-       enable = true;
-       # Additional configuration...
-     };
-   }
-   ```
-
-2. Import it in `hosts/a6mbp/home.nix`:
-   ```nix
-   imports = [
-     # ... existing imports
-     ./modules/programs/myprogram.nix
-   ];
-   ```
-
-### Adding New Packages
-
-Add packages to the appropriate category file in `hosts/a6mbp/modules/packages/`:
+Add new development shell configurations in the `dev-envs/` directory:
 
 ```nix
-# hosts/a6mbp/modules/packages/development.nix
-{ config, pkgs, ... }:
+# dev-envs/my-project.nix
+{ pkgs }:
 
-{
-  home.packages = with pkgs; [
-    # ... existing packages
-    nodejs_20
-    yarn
+pkgs.mkShell {
+  buildInputs = [
+    pkgs.nodejs_20
+    pkgs.yarn
+    # ... other dependencies
   ];
+
+  shellHook = ''
+    echo "🚀 my-project development environment"
+    # ... setup commands
+  '';
 }
 ```
+
+Then add it to `flake.nix`:
+
+```nix
+devShells.${system} = {
+  # ... existing shells
+  my-project = import ./dev-envs/my-project.nix {
+    pkgs = import nixpkgs {
+      inherit system;
+      config.allowUnfree = true;
+    };
+  };
+};
+```
+
+Activate with: `nix develop .#my-project`
 
 ### Adding Homebrew Packages
 
@@ -295,32 +264,29 @@ homebrew = {
 };
 ```
 
-### Creating a New Host
+### Using Development Environments
 
-To set up configuration for another Mac:
+This repository includes several pre-configured development environments:
 
-1. Copy `hosts/a6mbp` to a new directory (e.g., `hosts/work-macbook`)
-2. Add a new configuration in the root `flake.nix`:
-   ```nix
-   darwinConfigurations = {
-     a6mbp = nix-darwin.lib.darwinSystem { ... };  # existing
-     work-macbook = nix-darwin.lib.darwinSystem {
-       inherit system;
-       modules = [
-         ./darwin.nix
-         home-manager.darwinModules.home-manager
-         {
-           home-manager.users.bryan = import ./hosts/work-macbook/home.nix;
-           # ... other config
-         }
-       ];
-     };
-   };
-   ```
-3. Customize the host-specific configuration in `hosts/work-macbook/`
-4. Build with: `darwin-rebuild switch --flake .#work-macbook`
+- **vets-website**: Node.js 14.15.0, Yarn 1.x, Cypress dependencies
+- **vets-api**: Ruby 3.3.6, PostgreSQL, Redis, Kafka
+- **next-build**: Node.js 24, Yarn 3.x, Playwright, Docker
+- **component-library**: Node.js 22, Yarn 4.x, Puppeteer
 
-**Note**: The configuration name (e.g., `a6mbp`) doesn't need to match your system hostname.
+Activate a development environment:
+
+```bash
+cd ~/path/to/project
+nix develop ~/code/mac-nix-configs#vets-website
+```
+
+Or use direnv for automatic activation:
+
+```bash
+# In your project directory
+echo "use flake ~/code/mac-nix-configs#vets-website" > .envrc
+direnv allow
+```
 
 ## Key Configuration Details
 
@@ -331,11 +297,13 @@ To set up configuration for another Mac:
 - Allows unfree packages
 - Declarative Homebrew management with automatic cleanup
 
-### Home Manager (home.nix)
+### Development Environments
 
-- Modular configuration with separate files for each program/package category
-- Forces overwrite of Alacritty config (prevents conflicts)
-- State version: 24.05
+- **vets-website**: Node.js 14.15.0 with Yarn 1.x and Cypress dependencies
+- **vets-api**: Ruby 3.3.6 with PostgreSQL, Redis, and Kafka
+- **next-build**: Node.js 24 with Yarn 3.x, Playwright, and Docker
+- **component-library**: Node.js 22 with Yarn 4.x and Puppeteer
+- Each environment includes all necessary system dependencies and build tools
 
 ### Terminal Setup
 

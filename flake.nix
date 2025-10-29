@@ -14,13 +14,9 @@
   outputs = { self, nixpkgs, nixpkgs-2211, nix-darwin }:
   let
     system = "aarch64-darwin";
-    pkgs-2211 = import nixpkgs-2211 {
-      inherit system;
-      config.allowUnfree = true;
-    };
   in
   {
-    darwinConfigurations.a6mbp = nix-darwin.lib.darwinSystem {
+    darwinConfigurations.darwin = nix-darwin.lib.darwinSystem {
       inherit system;
 
       modules = [
@@ -29,25 +25,28 @@
     };
 
     devShells.${system} = {
-      vets-website = import ./hosts/a6mbp/dev-envs/vets-website.nix {
-        pkgs = pkgs-2211;
+      vets-website = import ./dev-envs/vets-website.nix {
+        pkgs = import nixpkgs-2211 {
+          inherit system;
+          config.allowUnfree = true;
+        };
       };
 
-      vets-api = import ./hosts/a6mbp/dev-envs/vets-api.nix {
+      vets-api = import ./dev-envs/vets-api.nix {
         pkgs = import nixpkgs {
           inherit system;
           config.allowUnfree = true;
         };
       };
 
-      next-build = import ./hosts/a6mbp/dev-envs/next-build.nix {
+      next-build = import ./dev-envs/next-build.nix {
         pkgs = import nixpkgs {
           inherit system;
           config.allowUnfree = true;
         };
       };
 
-      component-library = import ./hosts/a6mbp/dev-envs/component-library.nix {
+      component-library = import ./dev-envs/component-library.nix {
         pkgs = import nixpkgs {
           inherit system;
           config.allowUnfree = true;
