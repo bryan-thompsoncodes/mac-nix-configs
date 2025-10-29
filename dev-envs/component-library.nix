@@ -80,7 +80,7 @@ pkgs.mkShell {
     export PATH="$PWD/node_modules/.bin:$PATH"
 
     # Puppeteer cache location (avoid Nix store issues)
-    export PLAYWRIGHT_BROWSERS_PATH="''${HOME}/.cache/ms-playwright"
+    export PUPPETEER_CACHE_DIR="''${HOME}/.cache/puppeteer"
 
     # Work around Nix store read-only issues
     export ESLINT_USE_FLAT_CONFIG=false
