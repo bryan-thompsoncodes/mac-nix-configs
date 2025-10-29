@@ -4,6 +4,11 @@
   # Disable nix-darwin's Nix management (using Determinate Nix)
   nix.enable = false;
 
+  # Add MesloLGS Nerd Font
+  fonts.packages = with pkgs; [
+    nerd-fonts.meslo-lg
+  ];
+
   # System packages
   environment.systemPackages = with pkgs; [
     # Editors
@@ -90,7 +95,6 @@
     casks = [
       # GUI applications can be added here as needed
       # Add session-manager-plugin as cask if needed
-      "font-meslo-lg-nerd-font"
     ];
   };
 }
