@@ -1,50 +1,13 @@
 { pkgs }:
 
 let
+  lib = import ./lib.nix { inherit pkgs; };
+
   # Node.js 24 for next-build (closest to 24.1.0 specified in .nvmrc)
   nodejs = pkgs.nodejs_24;
 
   # Yarn 3.x (berry)
   yarn = pkgs.yarn-berry.override { inherit nodejs; };
-
-  # System dependencies for Playwright (Linux-specific packages filtered out on Darwin)
-  playwrightSystemDeps = with pkgs; lib.optionals stdenv.isLinux [
-    xorg.libXScrnSaver
-    xorg.libXdamage
-    xorg.libXtst
-    xorg.libXrandr
-    xorg.libxkbfile
-    gtk3
-    gtk2
-    atk
-    glib
-    pango
-    gdk-pixbuf
-    cairo
-    freetype
-    fontconfig
-    dbus
-    nss
-    nspr
-    alsa-lib
-    cups
-    expat
-    libdrm
-    libxkbcommon
-    libxshmfence
-    mesa
-    at-spi2-atk
-    at-spi2-core
-    xvfb-run
-  ];
-
-  # Build tools for native modules
-  buildTools = with pkgs; [
-    python3
-    gcc
-    gnumake
-    pkg-config
-  ];
 
   # Tools required by vtk socks setup
   vtkDependencies = with pkgs; [
@@ -60,7 +23,7 @@ pkgs.mkShell {
     yarn
     pkgs.git
     pkgs.docker
-  ] ++ buildTools ++ vtkDependencies ++ playwrightSystemDeps;
+  ] ++ lib.commonBuildTools ++ vtkDependencies ++ lib.browserTestingDeps;
 
   shellHook = ''
     echo "🚀 next-build development environment"
@@ -90,23 +53,12 @@ pkgs.mkShell {
     echo "  - yarn redis:stop       # Stop Redis container"
     echo ""
 
-    # Set up environment variables
-    export NODE_OPTIONS="--max-old-space-size=4096"
-
-    # Ensure yarn uses the correct node version
-    export PATH="$PWD/node_modules/.bin:$PATH"
+    ${lib.nodeEnvSetup}
 
     # Playwright cache location (avoid Nix store issues)
     export PLAYWRIGHT_BROWSERS_PATH="''${HOME}/.cache/ms-playwright"
-
-    # Work around Nix store read-only issues
-    export ESLINT_USE_FLAT_CONFIG=false
-
-    # Remove nix-direnv's symlinks to Nix store source copies
-    # These symlinks cause webpack/build tools to resolve to read-only store paths
-    rm -rf .direnv/flake-inputs/*-source 2>/dev/null || true
   '';
 
   # Set library path for Playwright and other native bindings
-  LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath playwrightSystemDeps;
+  LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath lib.browserTestingDeps;
 }

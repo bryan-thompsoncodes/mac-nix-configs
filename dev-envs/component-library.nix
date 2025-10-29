@@ -1,50 +1,13 @@
 { pkgs }:
 
 let
+  lib = import ./lib.nix { inherit pkgs; };
+
   # Node.js 22 for component-library (closest to 22.17.0 specified in .nvmrc)
   nodejs = pkgs.nodejs_22;
 
   # Yarn Berry (4.x) - used by component-library
   yarn = pkgs.yarn-berry.override { inherit nodejs; };
-
-  # System dependencies for Puppeteer (Linux-specific packages filtered out on Darwin)
-  puppeteerSystemDeps = with pkgs; lib.optionals stdenv.isLinux [
-    xorg.libXScrnSaver
-    xorg.libXdamage
-    xorg.libXtst
-    xorg.libXrandr
-    xorg.libxkbfile
-    gtk3
-    gtk2
-    atk
-    glib
-    pango
-    gdk-pixbuf
-    cairo
-    freetype
-    fontconfig
-    dbus
-    nss
-    nspr
-    alsa-lib
-    cups
-    expat
-    libdrm
-    libxkbcommon
-    libxshmfence
-    mesa
-    at-spi2-atk
-    at-spi2-core
-    xvfb-run
-  ];
-
-  # Build tools for native modules
-  buildTools = with pkgs; [
-    python3
-    gcc
-    gnumake
-    pkg-config
-  ];
 
 in
 pkgs.mkShell {
@@ -52,7 +15,7 @@ pkgs.mkShell {
     nodejs
     yarn
     pkgs.git
-  ] ++ buildTools ++ puppeteerSystemDeps;
+  ] ++ lib.commonBuildTools ++ lib.browserTestingDeps;
 
   shellHook = ''
     echo "🚀 component-library development environment"
@@ -73,23 +36,12 @@ pkgs.mkShell {
     echo "  - cd packages/storybook && yarn storybook"
     echo ""
 
-    # Set up environment variables
-    export NODE_OPTIONS="--max-old-space-size=4096"
-
-    # Ensure yarn uses the correct node version
-    export PATH="$PWD/node_modules/.bin:$PATH"
+    ${lib.nodeEnvSetup}
 
     # Puppeteer cache location (avoid Nix store issues)
     export PUPPETEER_CACHE_DIR="''${HOME}/.cache/puppeteer"
-
-    # Work around Nix store read-only issues
-    export ESLINT_USE_FLAT_CONFIG=false
-
-    # Remove nix-direnv's symlinks to Nix store source copies
-    # These symlinks cause webpack/build tools to resolve to read-only store paths
-    rm -rf .direnv/flake-inputs/*-source 2>/dev/null || true
   '';
 
   # Set library path for Puppeteer and other native bindings
-  LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath puppeteerSystemDeps;
+  LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath lib.browserTestingDeps;
 }

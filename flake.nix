@@ -3,7 +3,6 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    nixpkgs-2211.url = "github:NixOS/nixpkgs/nixos-22.11";
 
     nix-darwin = {
       url = "github:LnL7/nix-darwin";
@@ -11,9 +10,15 @@
     };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-2211, nix-darwin }:
+  outputs = { self, nixpkgs, nix-darwin }:
   let
     system = "aarch64-darwin";
+
+    # Create pkgs instance once and reuse across all environments
+    pkgs = import nixpkgs {
+      inherit system;
+      config.allowUnfree = true;
+    };
   in
   {
     darwinConfigurations.darwin = nix-darwin.lib.darwinSystem {
@@ -26,31 +31,19 @@
 
     devShells.${system} = {
       vets-website = import ./dev-envs/vets-website.nix {
-        pkgs = import nixpkgs-2211 {
-          inherit system;
-          config.allowUnfree = true;
-        };
+        inherit pkgs;
       };
 
       vets-api = import ./dev-envs/vets-api.nix {
-        pkgs = import nixpkgs {
-          inherit system;
-          config.allowUnfree = true;
-        };
+        inherit pkgs;
       };
 
       next-build = import ./dev-envs/next-build.nix {
-        pkgs = import nixpkgs {
-          inherit system;
-          config.allowUnfree = true;
-        };
+        inherit pkgs;
       };
 
       component-library = import ./dev-envs/component-library.nix {
-        pkgs = import nixpkgs {
-          inherit system;
-          config.allowUnfree = true;
-        };
+        inherit pkgs;
       };
     };
   };

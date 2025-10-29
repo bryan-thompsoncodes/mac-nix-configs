@@ -1,6 +1,8 @@
 { pkgs }:
 
 let
+  lib = import ./lib.nix { inherit pkgs; };
+
   # Node.js 14.15.0 as specified in .nvmrc and package.json engines
   # Cross-platform build supporting macOS (Intel/Apple Silicon) and Linux x64
   # Note: Node.js 14.15.0 has no native darwin-arm64 build (ARM64 support started in v16)
@@ -47,43 +49,8 @@ let
   # Yarn 1.x
   yarn = pkgs.yarn.override { inherit nodejs; };
 
-  # System dependencies for Cypress (Linux-specific packages filtered out on Darwin)
-  cypressSystemDeps = with pkgs; lib.optionals stdenv.isLinux [
-    xorg.libXScrnSaver
-    xorg.libXdamage
-    xorg.libXtst
-    xorg.libXrandr
-    xorg.libxkbfile
-    gtk3
-    gtk2
-    atk
-    glib
-    pango
-    gdk-pixbuf
-    cairo
-    freetype
-    fontconfig
-    dbus
-    nss
-    nspr
-    alsa-lib
-    cups
-    expat
-    libdrm
-    libxkbcommon
-    libxshmfence
-    mesa
-    at-spi2-atk
-    at-spi2-core
-    xvfb-run
-  ];
-
-  # Build tools for native modules (node-sass, etc.)
-  buildTools = with pkgs; [
-    python3
-    gcc
-    gnumake
-    pkg-config
+  # Additional build tool for vets-website (vips for image processing)
+  extraBuildTools = with pkgs; [
     vips
   ];
 
@@ -93,7 +60,7 @@ pkgs.mkShell {
     nodejs
     yarn
     pkgs.git
-  ] ++ buildTools ++ cypressSystemDeps;
+  ] ++ lib.commonBuildTools ++ extraBuildTools ++ lib.browserTestingDeps;
 
   shellHook = ''
     echo "🚀 vets-website development environment"
@@ -109,22 +76,16 @@ pkgs.mkShell {
     echo "  4. Run 'yarn cy:open' for Cypress tests"
     echo ""
 
-    # Set up environment variables
-    export NODE_OPTIONS="--max-old-space-size=4096"
-    export CYPRESS_INSTALL_BINARY=0
+    ${lib.nodeEnvSetup}
 
-    # Ensure yarn uses the correct node version
-    export PATH="$PWD/node_modules/.bin:$PATH"
+    # Disable Cypress binary installation (handled separately)
+    export CYPRESS_INSTALL_BINARY=0
 
     # Work around Nix store read-only issues with stylelint
     export STYLELINT_CACHE_LOCATION="''${TMPDIR:-/tmp}/stylelint-cache"
     mkdir -p "$STYLELINT_CACHE_LOCATION"
-
-    # Remove nix-direnv's symlinks to Nix store source copies
-    # These symlinks cause webpack/stylelint to resolve to read-only store paths
-    rm -rf .direnv/flake-inputs/*-source 2>/dev/null || true
   '';
 
   # Set library path for Cypress and other native bindings
-  LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath cypressSystemDeps;
+  LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath lib.browserTestingDeps;
 }
