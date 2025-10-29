@@ -93,7 +93,7 @@ The configuration is designed for Apple Silicon (aarch64) Macs and provides a fu
 1. **Nix Package Manager**: Install the [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer):
 
    ```bash
-   curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
+   curl -fsSL https://install.determinate.systems/nix | sh -s -- install --determinate
    ```
 
 2. **nix-darwin**: Follow the [nix-darwin installation guide](https://github.com/LnL7/nix-darwin#readme)
@@ -103,6 +103,11 @@ The configuration is designed for Apple Silicon (aarch64) Macs and provides a fu
    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
    ```
    Note: nix-darwin will manage Homebrew packages declaratively, but Homebrew itself must be installed first.
+
+4. Install Nix Flakes and Experimental Commands
+   ```bash
+   sudo nix run nix-darwin --extra-experimental-features "nix-command flakes" -- switch --flake .
+   ```
 
 ## Installation
 

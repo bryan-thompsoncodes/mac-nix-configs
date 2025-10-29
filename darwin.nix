@@ -8,6 +8,8 @@
   environment.systemPackages = with pkgs; [
     vim
     git
+    neovim
+    alacritty
   ];
 
   # Add Homebrew to system PATH
@@ -58,12 +60,18 @@
       "direnv"
       "redis"
       "libpq"
+      "gnupg"
       "ca-certificates"
+      "stow"
+      "tmux"
+      "ncurses"
+      "pinentry-mac"
     ];
 
     casks = [
       # GUI applications can be added here as needed
       # Add session-manager-plugin as cask if needed
+      "font-meslo-lg-nerd-font"
     ];
   };
 }
