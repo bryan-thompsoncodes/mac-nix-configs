@@ -10,6 +10,10 @@ pkgs.mkShell {
     ruby
     pkgs.git
 
+    # Ruby tools
+    pkgs.bundler
+    pkgs.foreman
+
     # Ruby development dependencies
     pkgs.libyaml
     pkgs.openssl
@@ -56,13 +60,19 @@ pkgs.mkShell {
     export REDIS_DIR="$PWD/tmp/redis"
     mkdir -p "$REDIS_DIR"
 
+    # Helper aliases for common tasks
+    alias start-redis='redis-server --daemonize yes --dir "$REDIS_DIR"'
+    alias stop-redis='redis-cli shutdown'
+    alias start-vets-api='foreman start -m all=1,clamd=0,freshclam=0'
+    alias setup-vets-api='bundle install && bundle exec rake db:setup'
+
     echo ""
-    echo "📦 Next steps:"
-    echo "  1. Run 'redis-start' to start Redis"
-    echo "  2. Run 'bundle install' to install Ruby gems"
-    echo "  3. Run 'foreman start -m all=1,clamd=0,freshclam=0' to start the API server"
+    echo "📦 Quick start:"
+    echo "  1. start-redis          # Start Redis in background"
+    echo "  2. setup-vets-api       # Install gems and setup database (first time)"
+    echo "  3. start-vets-api       # Start the API server with foreman"
     echo ""
-    echo "💡 Helper commands: redis-start, redis-stop"
+    echo "💡 Other aliases: stop-redis"
     echo ""
   '';
 }
