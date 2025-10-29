@@ -4,12 +4,31 @@
   # Disable nix-darwin's Nix management (using Determinate Nix)
   nix.enable = false;
 
-  # System packages (minimal for now)
+  # System packages
   environment.systemPackages = with pkgs; [
+    # Editors
     vim
-    git
     neovim
+
+    # Version control
+    git
+    gh  # GitHub CLI
+
+    # Terminal
     alacritty
+
+    # Cloud & DevOps
+    awscli2
+    docker-compose
+
+    # CLI utilities - modern replacements
+    ripgrep  # better grep
+    fd       # better find
+
+    # CLI utilities - general
+    wget
+    tree
+    htop
   ];
 
   # Add Homebrew to system PATH
