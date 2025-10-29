@@ -2,21 +2,29 @@
 
 let
   # Node.js 14.15.0 as specified in .nvmrc and package.json engines
-  # Use nodejs-slim which allows us to pin to an exact version more easily
+  # Cross-platform build supporting macOS (Intel/Apple Silicon) and Linux x64
+  # Note: Node.js 14.15.0 has no native darwin-arm64 build (ARM64 support started in v16)
+  # On Apple Silicon, the x64 binary runs via Rosetta 2 translation
   nodejs = pkgs.stdenv.mkDerivation rec {
     pname = "nodejs";
     version = "14.15.0";
 
-    src = if pkgs.stdenv.isDarwin then
-      pkgs.fetchurl {
-        url = "https://nodejs.org/dist/v${version}/node-v${version}-darwin-x64.tar.gz";
-        sha256 = "E4n1DS+fSZNzbQQIMAUTQ012MMKFNjT7E/K2nMnmnLk=";
-      }
-    else
-      pkgs.fetchurl {
-        url = "https://nodejs.org/dist/v${version}/node-v${version}-linux-x64.tar.xz";
-        sha256 = "1awjvhqvw9g4mb9a5pwa8gfgwvxj7wvfjm35pkvfqxcdr9ihvqxk";
-      };
+    # Determine the correct Node.js binary based on platform
+    src =
+      if pkgs.stdenv.isDarwin then
+        # macOS (both Intel and Apple Silicon use x64 binary)
+        pkgs.fetchurl {
+          url = "https://nodejs.org/dist/v${version}/node-v${version}-darwin-x64.tar.gz";
+          sha256 = "E4n1DS+fSZNzbQQIMAUTQ012MMKFNjT7E/K2nMnmnLk=";
+        }
+      else if pkgs.stdenv.isLinux && pkgs.stdenv.isx86_64 then
+        # Linux x64
+        pkgs.fetchurl {
+          url = "https://nodejs.org/dist/v${version}/node-v${version}-linux-x64.tar.xz";
+          sha256 = "1awjvhqvw9g4mb9a5pwa8gfgwvxj7wvfjm35pkvfqxcdr9ihvqxk";
+        }
+      else
+        throw "Unsupported platform: ${pkgs.stdenv.system}. This flake supports macOS and Linux x64 only.";
 
     buildInputs = [ pkgs.makeWrapper ];
 
@@ -25,7 +33,12 @@ let
 
     installPhase = ''
       mkdir -p $out
-      tar -xzf $src -C $out --strip-components=1
+      # Handle both .tar.gz (Darwin) and .tar.xz (Linux) formats
+      if [[ "$src" == *.tar.gz ]]; then
+        tar -xzf $src -C $out --strip-components=1
+      else
+        tar -xJf $src -C $out --strip-components=1
+      fi
       # Make node_modules writable to avoid permission errors
       chmod -R u+w $out/lib/node_modules || true
     '';
@@ -115,4 +128,3 @@ pkgs.mkShell {
   # Set library path for Cypress and other native bindings
   LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath cypressSystemDeps;
 }
-
