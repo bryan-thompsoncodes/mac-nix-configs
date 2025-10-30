@@ -89,6 +89,7 @@
     ];
 
     casks = [
+      "bambu-studio"
       "claude"
       "cursor"
       "obsidian"
