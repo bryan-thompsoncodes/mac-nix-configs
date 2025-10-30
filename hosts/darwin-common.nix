@@ -57,6 +57,7 @@
     onActivation = {
       autoUpdate = true;
       cleanup = "zap";
+      upgrade = true;
     };
 
     # Common Homebrew taps
