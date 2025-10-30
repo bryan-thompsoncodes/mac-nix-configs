@@ -25,7 +25,7 @@ fi
 
 # Configuration
 BASE_DIR="$HOME/code/department-of-veterans-affairs"
-FLAKE_PATH="$HOME/code/mac-nix-configs"
+FLAKE_PATH="$HOME/code/nix-configs"
 
 # Map repositories to their flake dev shells
 declare -A REPO_ENVS=(

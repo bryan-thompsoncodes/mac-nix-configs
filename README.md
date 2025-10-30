@@ -1,17 +1,18 @@
-# macOS Nix Configuration
+# Nix Configuration
 
-A declarative, reproducible macOS system configuration using Nix and nix-darwin.
+A declarative, reproducible system configuration using Nix, supporting both macOS (via nix-darwin) and NixOS.
 
 ## Overview
 
-This repository contains a complete macOS system configuration managed with:
+This repository contains system configurations for multiple platforms:
 
 - **[Nix](https://nixos.org/)**: Declarative package management
 - **[nix-darwin](https://github.com/LnL7/nix-darwin)**: macOS system configuration
+- **[NixOS](https://nixos.org/)**: Linux system configuration
 - **[Homebrew](https://brew.sh/)**: macOS-specific packages (managed declaratively via nix-darwin)
-- **Development Shells**: Project-specific environments with pinned dependencies
+- **Development Shells**: Cross-platform project-specific environments with pinned dependencies
 
-The configuration is designed for Apple Silicon (aarch64) Macs and provides fully reproducible development environments.
+The configuration supports both macOS (Apple Silicon) and NixOS (x86_64 Linux), providing fully reproducible development environments across platforms.
 
 ## Features
 
@@ -56,9 +57,11 @@ The configuration is designed for Apple Silicon (aarch64) Macs and provides full
 ├── flake.nix              # Main flake configuration
 ├── flake.lock             # Lock file for reproducible builds
 ├── hosts/                 # Host-specific configurations
-│   ├── a6mbp.nix          # Work machine (Apple Silicon)
-│   └── mbp.nix            # Personal machine (Apple Silicon)
-└── dev-envs/              # Development environment shells
+│   ├── a6mbp.nix          # Work MacBook Pro (macOS, Apple Silicon)
+│   ├── mbp.nix            # Personal MacBook Pro (macOS, Apple Silicon)
+│   └── gnarbox.nix        # (Future) NixOS machine (x86_64 Linux)
+└── dev-envs/              # Cross-platform development environment shells
+    ├── lib.nix            # Shared utilities and platform detection
     ├── component-library.nix
     ├── next-build.nix
     ├── vets-api.nix
@@ -67,11 +70,15 @@ The configuration is designed for Apple Silicon (aarch64) Macs and provides full
 
 ## Prerequisites
 
+### For All Systems
+
 1. **Nix Package Manager**: Install the [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer):
 
    ```bash
    curl -fsSL https://install.determinate.systems/nix | sh -s -- install --determinate
    ```
+
+### For macOS
 
 2. **nix-darwin**: Follow the [nix-darwin installation guide](https://github.com/LnL7/nix-darwin#readme)
 
@@ -88,6 +95,15 @@ The configuration is designed for Apple Silicon (aarch64) Macs and provides full
    sudo nix run nix-darwin --extra-experimental-features "nix-command flakes" -- switch --flake .
    ```
 
+### For NixOS
+
+NixOS comes with Nix pre-installed. Simply ensure flakes are enabled in your system configuration:
+
+```nix
+# /etc/nixos/configuration.nix
+nix.settings.experimental-features = [ "nix-command" "flakes" ];
+```
+
 ## Installation
 
 ### Initial Setup
@@ -95,19 +111,29 @@ The configuration is designed for Apple Silicon (aarch64) Macs and provides full
 1. **Clone this repository**:
 
    ```bash
-   git clone https://github.com/yourusername/mac-nix-configs.git ~/code/mac-nix-configs
-   cd ~/code/mac-nix-configs
+   git clone https://github.com/yourusername/nix-configs.git ~/code/nix-configs
+   cd ~/code/nix-configs
    ```
 
 2. **Build and activate the configuration**:
 
+   **For macOS:**
    ```bash
    darwin-rebuild switch --flake .#mbp
    ```
 
-   The `#mbp` specifies which host configuration to use from the flake.
+   The `#mbp` specifies which host configuration to use from the flake (use `#a6mbp` for work machine).
+
+   **For NixOS:**
+   ```bash
+   sudo nixos-rebuild switch --flake .#gnarbox
+   ```
+
+   Replace `gnarbox` with your host configuration name.
 
 ### Post-Installation
+
+**For macOS users:**
 
 1. **Configure Powerlevel10k** (if needed):
 
@@ -123,28 +149,41 @@ The configuration is designed for Apple Silicon (aarch64) Macs and provides full
    exec zsh
    ```
 
+**For NixOS users:**
+
+1. **Restart your system** or reload your user session to apply all changes.
+
+2. **Configure your shell and terminal emulator** as defined in your host configuration.
+
 ## Usage
 
 ### Applying Changes
 
 After modifying any configuration files:
 
+**For macOS:**
 ```bash
-rebuild
+rebuild  # If you have this alias set up
 ```
 
 Or explicitly:
 
 ```bash
-darwin-rebuild switch --flake ~/code/mac-nix-configs#mbp  # or #a6mbp for work machine
+darwin-rebuild switch --flake ~/code/nix-configs#mbp  # or #a6mbp for work machine
+```
+
+**For NixOS:**
+```bash
+sudo nixos-rebuild switch --flake ~/code/nix-configs#gnarbox
 ```
 
 ### Updating Dependencies
 
 Update all flake inputs to their latest versions:
 
+**For macOS:**
 ```bash
-update
+update  # If you have this alias set up
 ```
 
 Or manually:
@@ -152,6 +191,12 @@ Or manually:
 ```bash
 nix flake update
 darwin-rebuild switch --flake .#mbp
+```
+
+**For NixOS:**
+```bash
+nix flake update
+sudo nixos-rebuild switch --flake .#gnarbox
 ```
 
 ## Customization
@@ -214,25 +259,27 @@ homebrew = {
 
 ### Using Development Environments
 
-This repository includes several pre-configured development environments:
+This repository includes several pre-configured cross-platform development environments:
 
 - **vets-website**: Node.js 14.15.0, Yarn 1.x, Cypress dependencies
 - **vets-api**: Ruby 3.3.6, PostgreSQL, Redis, Kafka
 - **next-build**: Node.js 24, Yarn 3.x, Playwright, Docker
 - **component-library**: Node.js 22, Yarn 4.x, Puppeteer
 
+These environments work on both macOS and Linux, with platform-specific dependencies automatically selected.
+
 Activate a development environment:
 
 ```bash
 cd ~/path/to/project
-nix develop ~/code/mac-nix-configs#vets-website
+nix develop ~/code/nix-configs#vets-website
 ```
 
 Or use direnv for automatic activation:
 
 ```bash
 # In your project directory
-echo "use flake ~/code/mac-nix-configs#vets-website" > .envrc
+echo "use flake ~/code/nix-configs#vets-website" > .envrc
 direnv allow
 ```
 
@@ -241,7 +288,7 @@ direnv allow
 For a fresh workstation setup, use the included script to automatically create `.envrc` files for all VA repositories:
 
 ```bash
-cd ~/code/mac-nix-configs
+cd ~/code/nix-configs
 ./setup-envrc.sh
 ```
 
@@ -270,36 +317,57 @@ After running the script, the development environment will load automatically wh
 
 ### System Settings (Host Configurations)
 
-This repository supports multiple host configurations:
+This repository supports multiple host configurations across platforms:
+
+**macOS Hosts (nix-darwin):**
 - **`hosts/mbp.nix`**: Personal MacBook Pro configuration
 - **`hosts/a6mbp.nix`**: Work MacBook Pro configuration
 
-Each host configuration includes:
+Each macOS host configuration includes:
 - Disables nix-darwin's Nix management (uses Determinate Nix)
 - Enables Zsh system-wide
 - Allows unfree packages
 - Declarative Homebrew management with automatic cleanup
 
+**NixOS Hosts:**
+- **`hosts/gnarbox.nix`**: (Future) NixOS machine configuration
+
+NixOS host configurations will include standard NixOS system settings, user management, and package declarations.
+
 ### Development Environments
+
+All development environments are cross-platform compatible:
 
 - **vets-website**: Node.js 14.15.0 with Yarn 1.x and Cypress dependencies
 - **vets-api**: Ruby 3.3.6 with PostgreSQL, Redis, and Kafka
 - **next-build**: Node.js 24 with Yarn 3.x, Playwright, and Docker
 - **component-library**: Node.js 22 with Yarn 4.x and Puppeteer
 - Each environment includes all necessary system dependencies and build tools
+- Platform-specific dependencies (e.g., browser testing libraries) are automatically selected based on the host system
 
-### Terminal Setup
+### Terminal Setup (macOS)
 
 - **Alacritty**: GPU-accelerated terminal with custom theme and opacity
 - **Zsh**: Powerlevel10k theme, auto-suggestions, syntax highlighting, and enhanced completions (no Oh-My-Zsh for faster startup)
 - **Tmux**: Vi key bindings, 256 color support, integration with dotfiles
 - **Neovim**: Set as default editor, managed plugins via Lazy.nvim (external)
 
+Note: NixOS terminal setup will be configured per-host in the respective host configuration files.
+
 ## Notes
 
-- This configuration uses **Determinate Nix**, so nix-darwin's Nix management is disabled
-- Homebrew is managed **declaratively** - packages not in the config will be uninstalled
+### General
+- This configuration uses **Determinate Nix** for all systems
+- Development environments are **cross-platform** and work on both macOS and NixOS
 - **SSH configuration is NOT managed by Nix** - We use `vtk socks` for VA work, which dynamically writes to `~/.ssh/config`. Managing SSH with Nix creates conflicts with vtk's configuration. Manage `~/.ssh/config` manually instead.
+
+### macOS-Specific
+- nix-darwin's Nix management is disabled (uses Determinate Nix)
+- Homebrew is managed **declaratively** - packages not in the config will be uninstalled
+
+### NixOS-Specific
+- System configuration will be managed through standard NixOS modules
+- No Homebrew dependency on NixOS systems
 
 ## Troubleshooting
 
