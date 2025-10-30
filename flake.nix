@@ -22,45 +22,34 @@
     darwinSystem = "aarch64-darwin";
     darwinPkgs = mkPkgs darwinSystem;
 
+    # Helper to create Darwin configuration
+    mkDarwinConfig = hostname: nix-darwin.lib.darwinSystem {
+      system = darwinSystem;
+      modules = [ ./hosts/${hostname}.nix ];
+    };
+
+    # List of dev environments
+    devEnvs = [
+      "vets-website"
+      "vets-api"
+      "next-build"
+      "component-library"
+    ];
+
     # Helper to create dev shells for multiple systems
     mkDevShells = system:
       let
         pkgs = mkPkgs system;
       in
-      {
-        vets-website = import ./dev-envs/vets-website.nix {
-          inherit pkgs;
-        };
-
-        vets-api = import ./dev-envs/vets-api.nix {
-          inherit pkgs;
-        };
-
-        next-build = import ./dev-envs/next-build.nix {
-          inherit pkgs;
-        };
-
-        component-library = import ./dev-envs/component-library.nix {
-          inherit pkgs;
-        };
-      };
+      nixpkgs.lib.genAttrs devEnvs (env:
+        import ./dev-envs/${env}.nix { inherit pkgs; }
+      );
   in
   {
     # macOS configurations using nix-darwin
-    darwinConfigurations.a6mbp = nix-darwin.lib.darwinSystem {
-      system = darwinSystem;
-
-      modules = [
-        ./hosts/a6mbp.nix
-      ];
-    };
-
-    darwinConfigurations.mbp = nix-darwin.lib.darwinSystem {
-      system = darwinSystem;
-
-      modules = [
-        ./hosts/mbp.nix
-      ];
+    darwinConfigurations = {
+      a6mbp = mkDarwinConfig "a6mbp";
+      mbp = mkDarwinConfig "mbp";
     };
 
     # NixOS configurations (placeholder for future hosts like gnarbox)
