@@ -289,7 +289,7 @@ For a fresh workstation setup, use the included script to automatically create `
 
 ```bash
 cd ~/code/nix-configs
-./setup-envrc.sh
+./dev-envs/setup-va-envrcs.sh
 ```
 
 This interactive script will:
