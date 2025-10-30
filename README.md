@@ -57,6 +57,7 @@ The configuration supports both macOS (Apple Silicon) and NixOS (x86_64 Linux), 
 ├── flake.nix              # Main flake configuration
 ├── flake.lock             # Lock file for reproducible builds
 ├── hosts/                 # Host-specific configurations
+│   ├── darwin-common.nix  # Shared macOS configuration for all Darwin hosts
 │   ├── a6mbp.nix          # Work MacBook Pro (macOS, Apple Silicon)
 │   ├── mbp.nix            # Personal MacBook Pro (macOS, Apple Silicon)
 │   └── gnarbox.nix        # (Future) NixOS machine (x86_64 Linux)
@@ -241,12 +242,10 @@ Activate with: `nix develop .#my-project`
 
 ### Adding Homebrew Packages
 
-Edit the appropriate host configuration file (`hosts/mbp.nix` or `hosts/a6mbp.nix`) to add formulae or casks:
+**For packages shared across all macOS hosts**, edit `hosts/darwin-common.nix`:
 
 ```nix
 homebrew = {
-  enable = true;
-
   brews = [
     "package-name"
   ];
@@ -256,6 +255,22 @@ homebrew = {
   ];
 };
 ```
+
+**For host-specific packages**, edit the appropriate host configuration file (`hosts/mbp.nix` or `hosts/a6mbp.nix`):
+
+```nix
+homebrew = {
+  brews = [
+    "package-name"
+  ];
+
+  casks = [
+    "app-name"
+  ];
+};
+```
+
+Note: Homebrew lists are automatically merged, so each host gets both the common packages from `darwin-common.nix` and their host-specific additions.
 
 ### Using Development Environments
 
@@ -320,8 +335,20 @@ After running the script, the development environment will load automatically wh
 This repository supports multiple host configurations across platforms:
 
 **macOS Hosts (nix-darwin):**
+- **`hosts/darwin-common.nix`**: Shared configuration for all macOS hosts
+  - System packages (editors, version control, terminal, CLI utilities)
+  - Font configuration (MesloLGS Nerd Font)
+  - Zsh configuration
+  - Common Homebrew packages (zsh plugins, CLI tools, common apps)
+  - System settings (disables nix-darwin's Nix management, allows unfree packages)
 - **`hosts/mbp.nix`**: Personal MacBook Pro configuration
+  - Imports `darwin-common.nix`
+  - Additional casks: bambu-studio, steam
 - **`hosts/a6mbp.nix`**: Work MacBook Pro configuration
+  - Imports `darwin-common.nix`
+  - Additional packages: awscli2, docker-compose
+  - Additional Homebrew: DDEV (for va.gov-cms development)
+  - Additional casks: notion, slack, zoom
 
 Each macOS host configuration includes:
 - Disables nix-darwin's Nix management (uses Determinate Nix)
