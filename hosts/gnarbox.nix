@@ -2,7 +2,8 @@
   inputs,
   outputs,
   config,
-  pkgs, 
+  pkgs,
+  cursor,
   meta,
   ... 
 }:
@@ -149,7 +150,6 @@
     # Editors
     vim
     neovim
-    code-cursor
 
     # Version control
     git
@@ -195,7 +195,7 @@
 
     # Unstable packages
     unstable.claude-code
-    unstable.code-cursor
+    cursor  # From jetpham's fork: v2.0.38
 
     # Host-specific packages
     #bambu-studio

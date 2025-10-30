@@ -7,13 +7,16 @@
     # Unstable packages for overlays
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
+    # Fork with code-cursor package
+    nixpkgs-cursor.url = "github:jetpham/nixpkgs/a533941e29a39bfee9813c36ad1ac031338fd23c";
+
     nix-darwin = {
       url = "github:LnL7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, nix-darwin } @ inputs:
+  outputs = { self, nixpkgs, nixpkgs-unstable, nixpkgs-cursor, nix-darwin } @ inputs:
   let
     inherit (self) outputs;
 
@@ -54,6 +57,21 @@
     # Export overlays for use in NixOS configurations
     overlays = import ./overlays {inherit inputs;};
 
+    # Expose buildable packages
+    packages = {
+      x86_64-linux =
+        let
+          cursorPkgs = import nixpkgs-cursor {
+            system = "x86_64-linux";
+            config.allowUnfree = true;
+          };
+        in rec {
+          # Use code-cursor from jetpham's fork (v2.0.38)
+          cursor = cursorPkgs.code-cursor;
+          default = cursor;
+        };
+    };
+
     # macOS configurations using nix-darwin
     darwinConfigurations = {
       a6mbp = mkDarwinConfig "a6mbp";
@@ -69,6 +87,11 @@
           meta = {
             hostname = "gnarbox";
           };
+          # Make cursor from fork available
+          cursor = (import nixpkgs-cursor {
+            system = "x86_64-linux";
+            config.allowUnfree = true;
+          }).code-cursor;
         };
         modules = [
           ./hosts/gnarbox.nix
