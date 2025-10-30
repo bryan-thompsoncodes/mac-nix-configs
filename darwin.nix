@@ -93,8 +93,7 @@
     ];
 
     casks = [
-      # GUI applications can be added here as needed
-      # Add session-manager-plugin as cask if needed
+      "cursor"
     ];
   };
 }

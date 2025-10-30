@@ -18,7 +18,7 @@ The configuration is designed for Apple Silicon (aarch64) Macs and provides full
 ### 🎯 Development Tools
 
 - **Version Control**: Git, GitHub CLI
-- **Editors**: Neovim (with custom configs), Vim
+- **Editors**: Neovim (with custom configs), Vim, Cursor
 - **Terminal**: Alacritty
 - **Shell**: Zsh with Powerlevel10k theme, auto-suggestions, and syntax highlighting (via Homebrew)
 - **Project Environments**: Pre-configured Nix shells for VA projects (vets-website, vets-api, next-build, component-library)
