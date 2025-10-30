@@ -4,14 +4,19 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
+    # Unstable packages for overlays
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+
     nix-darwin = {
       url = "github:LnL7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { self, nixpkgs, nix-darwin }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, nix-darwin } @ inputs:
   let
+    inherit (self) outputs;
+
     # Helper function to create pkgs for a given system
     mkPkgs = system: import nixpkgs {
       inherit system;
@@ -46,6 +51,9 @@
       );
   in
   {
+    # Export overlays for use in NixOS configurations
+    overlays = import ./overlays {inherit inputs;};
+
     # macOS configurations using nix-darwin
     darwinConfigurations = {
       a6mbp = mkDarwinConfig "a6mbp";
@@ -56,6 +64,12 @@
     nixosConfigurations = {
       gnarbox = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
+        specialArgs = {
+          inherit inputs outputs;
+          meta = {
+            hostname = "gnarbox";
+          };
+        };
         modules = [
           ./hosts/gnarbox.nix
         ];

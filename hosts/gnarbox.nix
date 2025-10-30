@@ -1,27 +1,161 @@
-{ config, pkgs, ... }:
+{ 
+  inputs,
+  outputs,
+  config,
+  pkgs, 
+  meta,
+  ... 
+}:
 
 {
+  # Import the generated hardware configuration
+  imports = [ ./hardware-configs/gnarbox.nix ];
+  
   # Nix settings
-  nix.settings = {
-    experimental-features = [ "nix-command" "flakes" ];
+  nix = {
+    package = pkgs.nixVersions.stable;
+    extraOptions = ''
+      experimental-features = nix-command flakes
+    '';
+    settings.warn-dirty = false;
   };
 
-  # Add MesloLGS Nerd Font
-  fonts.packages = with pkgs; [
-    (nerdfonts.override { fonts = [ "Meslo" ]; })
-  ];
+  # Nixpkgs configuration with overlays
+  nixpkgs = {
+    # Add overlays from flake exports
+    overlays = [
+      outputs.overlays.additions
+      outputs.overlays.unstable
+      outputs.overlays.modifications
+    ];
+    # Configure nixpkgs instance
+    config = {
+      # Allow unfree packages
+      allowUnfree = true;
+      # Permit insecure packages if needed
+      permittedInsecurePackages = [
+        "electron-25.9.0"
+      ];
+    };
+    # Platform
+    hostPlatform = "x86_64-linux";
+  };
+
+  # Bootloader
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
+  # Use latest linux kernel
+  boot.kernelPackages = pkgs.linuxPackages_latest;
+
+  # LUKS device configuration
+  boot.initrd.luks.devices."luks-5b933bbd-d285-4b20-8b90-0d18947e77f6".device = "/dev/disk/by-uuid/5b933bbd-d285-4b20-8b90-0d18947e77f6";
+
+  # Networking
+  networking.hostName = meta.hostname; # Define your hostname in flake
+  networking.networkmanager.enable = true;
+
+  # Set your time zone
+  time.timeZone = "America/Los_Angeles";
+
+  # Select internationalisation properties
+  i18n.defaultLocale = "en_US.UTF-8";
+
+  i18n.extraLocaleSettings = {
+    LC_ADDRESS = "en_US.UTF-8";
+    LC_IDENTIFICATION = "en_US.UTF-8";
+    LC_MEASUREMENT = "en_US.UTF-8";
+    LC_MONETARY = "en_US.UTF-8";
+    LC_NAME = "en_US.UTF-8";
+    LC_NUMERIC = "en_US.UTF-8";
+    LC_PAPER = "en_US.UTF-8";
+    LC_TELEPHONE = "en_US.UTF-8";
+    LC_TIME = "en_US.UTF-8";
+  };
+
+  # Enable the X11 windowing system
+  services.xserver.enable = true;
+
+  # Enable the GNOME Desktop Environment
+  services.displayManager.gdm.enable = true;
+  services.desktopManager.gnome.enable = true;
+
+  # Configure keymap in X11
+  services.xserver.xkb = {
+    layout = "us";
+    variant = "";
+  };
+
+  # Enable CUPS to print documents
+  services.printing.enable = true;
+
+  # Enable sound with pipewire
+  services.pulseaudio.enable = false;
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
+
+  # Enable graphics for gaming (Steam)
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+  };
+
+  # Define user account
+  users.users.bryan = {
+    isNormalUser = true;
+    description = "Bryan";
+    extraGroups = [ "networkmanager" "wheel" ];
+    shell = pkgs.zsh;
+  };
+
+  # Sudo configuration
+  security.sudo.wheelNeedsPassword = false;
+
+  # Install Firefox
+  programs.firefox.enable = true;
+
+  # Enable Zsh
+  programs.zsh.enable = true;
+
+  # Enable GnuPG agent
+  programs.gnupg.agent = {
+    enable = true;
+    enableSSHSupport = true;
+  };
+
+  # Enable gamemode
+  programs.gamemode.enable = true;
+
+  # Steam setup
+  programs.steam = {
+    enable = true;
+    extraCompatPackages = [
+      pkgs.proton-ge-bin
+    ];
+    gamescopeSession = {
+      enable = true;
+    };
+    remotePlay.openFirewall = true;
+    dedicatedServer.openFirewall = true;
+  };
 
   # System packages
   environment.systemPackages = with pkgs; [
     # Editors
     vim
     neovim
+    code-cursor
 
     # Version control
     git
     gh  # GitHub CLI
 
-    # Terminal
+    # Terminals
     alacritty
 
     # CLI utilities - modern replacements
@@ -32,82 +166,47 @@
     wget
     tree
     htop
+    bat
+    eza
+    fzf
+    direnv
+    stow
+    tmux
+    ncurses
 
     # Zsh plugins
     zsh-powerlevel10k
     zsh-autosuggestions
     zsh-syntax-highlighting
 
-    # CLI tools
-    bat
-    eza
-    fzf
-    direnv
+    # Development tools
     redis
     libpq
     gnupg
-    stow
-    tmux
-    ncurses
+
+    # Media
+    vlc
+
+    # Communication
+    discord
 
     # GUI applications
     obsidian
 
+    # Unstable packages
+    unstable.claude-code
+    unstable.code-cursor
+
     # Host-specific packages
-    bambu-studio
-    steam
+    #bambu-studio
   ];
 
-  # Zsh configuration
-  programs.zsh.enable = true;
-
-  # Set default shell for user
-  users.users.bryan = {
-    isNormalUser = true;
-    shell = pkgs.zsh;
-    extraGroups = [ "wheel" "networkmanager" ];
-  };
+  # Fonts configuration
+  fonts.packages = with pkgs; [
+    nerd-fonts.meslo-lg
+  ];
 
   # System state version
   system.stateVersion = "25.05";
-
-  # Platform
-  nixpkgs.hostPlatform = "x86_64-linux";
-
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
-
-  # Networking
-  networking.hostName = "gnarbox";
-  networking.networkmanager.enable = true;
-
-  # Bootloader (basic configuration - user may need to adjust)
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-
-  # Enable sound
-  sound.enable = true;
-  hardware.pulseaudio.enable = false;
-  security.rtkit.enable = true;
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-  };
-
-  # Enable OpenGL for gaming (Steam)
-  hardware.opengl = {
-    enable = true;
-    driSupport = true;
-    driSupport32Bit = true;
-  };
-
-  # Enable Steam-specific optimizations
-  programs.steam = {
-    enable = true;
-    remotePlay.openFirewall = true;
-    dedicatedServer.openFirewall = true;
-  };
 }
 
