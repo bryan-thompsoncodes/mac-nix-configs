@@ -55,7 +55,9 @@ The configuration is designed for Apple Silicon (aarch64) Macs and provides full
 .
 ├── flake.nix              # Main flake configuration
 ├── flake.lock             # Lock file for reproducible builds
-├── darwin.nix             # System-level macOS configuration
+├── hosts/                 # Host-specific configurations
+│   ├── a6mbp.nix          # Work machine (Apple Silicon)
+│   └── mbp.nix            # Personal machine (Apple Silicon)
 └── dev-envs/              # Development environment shells
     ├── component-library.nix
     ├── next-build.nix
@@ -100,10 +102,10 @@ The configuration is designed for Apple Silicon (aarch64) Macs and provides full
 2. **Build and activate the configuration**:
 
    ```bash
-   darwin-rebuild switch --flake .#darwin
+   darwin-rebuild switch --flake .#mbp
    ```
 
-   The `#darwin` specifies which host configuration to use from the flake.
+   The `#mbp` specifies which host configuration to use from the flake.
 
 ### Post-Installation
 
@@ -134,7 +136,7 @@ rebuild
 Or explicitly:
 
 ```bash
-darwin-rebuild switch --flake ~/code/mac-nix-configs#darwin
+darwin-rebuild switch --flake ~/code/mac-nix-configs#mbp  # or #a6mbp for work machine
 ```
 
 ### Updating Dependencies
@@ -149,7 +151,7 @@ Or manually:
 
 ```bash
 nix flake update
-darwin-rebuild switch --flake .#darwin
+darwin-rebuild switch --flake .#mbp
 ```
 
 ## Customization
@@ -194,7 +196,7 @@ Activate with: `nix develop .#my-project`
 
 ### Adding Homebrew Packages
 
-Edit `darwin.nix` to add formulae or casks:
+Edit the appropriate host configuration file (`hosts/mbp.nix` or `hosts/a6mbp.nix`) to add formulae or casks:
 
 ```nix
 homebrew = {
@@ -252,7 +254,7 @@ This interactive script will:
 
 **Prerequisites:**
 
-- direnv must be installed (included in darwin.nix Homebrew packages)
+- direnv must be installed (included in host configuration Homebrew packages)
 - VA repositories must be cloned (use `~/code/dotfiles/setup-va-repos.sh` first)
 
 **Repositories configured:**
@@ -266,8 +268,13 @@ After running the script, the development environment will load automatically wh
 
 ## Key Configuration Details
 
-### System Settings (darwin.nix)
+### System Settings (Host Configurations)
 
+This repository supports multiple host configurations:
+- **`hosts/mbp.nix`**: Personal MacBook Pro configuration
+- **`hosts/a6mbp.nix`**: Work MacBook Pro configuration
+
+Each host configuration includes:
 - Disables nix-darwin's Nix management (uses Determinate Nix)
 - Enables Zsh system-wide
 - Allows unfree packages

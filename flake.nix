@@ -21,11 +21,19 @@
     };
   in
   {
-    darwinConfigurations.darwin = nix-darwin.lib.darwinSystem {
+    darwinConfigurations.a6mbp = nix-darwin.lib.darwinSystem {
       inherit system;
 
       modules = [
-        ./darwin.nix
+        ./hosts/a6mbp.nix
+      ];
+    };
+
+    darwinConfigurations.mbp = nix-darwin.lib.darwinSystem {
+      inherit system;
+
+      modules = [
+        ./hosts/mbp.nix
       ];
     };
 
