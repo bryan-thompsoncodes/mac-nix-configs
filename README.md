@@ -34,13 +34,13 @@ Includes `darwin-common` plus:
 
 ## Prerequisites
 
-Install [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer):
+**macOS only:** Install [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer):
 
 ```bash
 curl -fsSL https://install.determinate.systems/nix | sh -s -- install --determinate
 ```
 
-**macOS only:** Install [Homebrew](https://brew.sh) and [nix-darwin](https://github.com/LnL7/nix-darwin) (see their docs for setup).
+**NixOS:** Nix comes pre-installed.
 
 ## Installation
 
@@ -59,10 +59,10 @@ Build and activate:
 darwin-rebuild switch --flake .#mbp  # or .#a6mbp for work machine
 ```
 
-**NixOS:**
+**NixOS** (first build requires experimental features flag):
 
 ```bash
-sudo nixos-rebuild switch --flake .#gnarbox
+sudo nixos-rebuild switch --flake .#gnarbox --extra-experimental-features "nix-command flakes"
 ```
 
 ## Usage
