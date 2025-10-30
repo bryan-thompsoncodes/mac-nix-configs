@@ -52,14 +52,14 @@
       mbp = mkDarwinConfig "mbp";
     };
 
-    # NixOS configurations (placeholder for future hosts like gnarbox)
+    # NixOS configurations
     nixosConfigurations = {
-      # Example: gnarbox = nixpkgs.lib.nixosSystem {
-      #   system = "x86_64-linux";
-      #   modules = [
-      #     ./hosts/gnarbox.nix
-      #   ];
-      # };
+      gnarbox = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/gnarbox.nix
+        ];
+      };
     };
 
     # Development shells for multiple systems
