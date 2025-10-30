@@ -93,7 +93,13 @@
     ];
 
     casks = [
+      "claude"
       "cursor"
+      "notion"
+      "obsidian"
+      "rectangle-pro"
+      "slack"
+      "zoom"
     ];
   };
 }
