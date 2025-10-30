@@ -56,13 +56,13 @@ Build and activate:
 **macOS:**
 
 ```bash
-darwin-rebuild switch --flake .#mbp  # or .#a6mbp for work machine
+darwin-rebuild switch --flake '.#mbp'  # or '.#a6mbp' for work machine
 ```
 
 **NixOS** (first build requires experimental features flag):
 
 ```bash
-sudo nixos-rebuild switch --flake .#gnarbox --extra-experimental-features "nix-command flakes"
+sudo nixos-rebuild switch --flake '.#gnarbox' --extra-experimental-features 'nix-command flakes'
 ```
 
 ## Usage
@@ -72,13 +72,13 @@ sudo nixos-rebuild switch --flake .#gnarbox --extra-experimental-features "nix-c
 **macOS:**
 
 ```bash
-darwin-rebuild switch --flake ~/code/nix-configs#mbp
+darwin-rebuild switch --flake '~/code/nix-configs#mbp'
 ```
 
 **NixOS:**
 
 ```bash
-sudo nixos-rebuild switch --flake ~/code/nix-configs#gnarbox
+sudo nixos-rebuild switch --flake '~/code/nix-configs#gnarbox'
 ```
 
 ### Update Dependencies
@@ -100,7 +100,7 @@ Cross-platform development environments for VA projects:
 **Activate manually:**
 
 ```bash
-nix develop ~/code/nix-configs#vets-website
+nix develop '~/code/nix-configs#vets-website'
 ```
 
 **Auto-activate with direnv:**
