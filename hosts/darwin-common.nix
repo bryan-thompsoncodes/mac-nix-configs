@@ -87,6 +87,7 @@
       "tmux"
       "ncurses"
       "pinentry-mac"
+      "opencode"
     ];
 
     # Common Homebrew casks
