@@ -30,6 +30,9 @@
     wget
     tree
     htop
+
+    # Nix development
+    nix-direnv  # Fast, persistent Nix shell caching for direnv
   ];
 
   # Add Homebrew to system PATH
