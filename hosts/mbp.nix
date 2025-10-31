@@ -11,6 +11,7 @@
     casks = [
       "bambu-studio"
       "steam"
+      "zen"
     ];
   };
 }
