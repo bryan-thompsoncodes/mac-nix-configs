@@ -94,6 +94,7 @@
     casks = [
       "claude"
       "cursor"
+      "font-meslo-lg-nerd-font"
       "obsidian"
       "rectangle-pro"
     ];
