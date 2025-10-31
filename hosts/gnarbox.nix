@@ -197,6 +197,10 @@
     unstable.claude-code
     cursor  # From jetpham's fork: v2.0.38
 
+    # AI coding assistants
+    opencode
+    goose-cli
+
     # Host-specific packages
     #bambu-studio
   ];
