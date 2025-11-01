@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+
+# open-webui-update-hook - Git hook to automatically update open-webui after nix-darwin rebuild
+# This script should be called after successful nix-darwin rebuild
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OPEN_WEBUP_SCRIPT="$SCRIPT_DIR/open-webup"
+
+# Colors
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+print_header() {
+    echo -e "${BLUE}=== $1 ===${NC}"
+}
+
+print_status() {
+    echo -e "${GREEN}[INFO]${NC} $1"
+}
+
+print_warning() {
+    echo -e "${YELLOW}[WARN]${NC} $1"
+}
+
+# Check if open-webui package changed
+check_package_changed() {
+    print_header "Checking open-webui package changes"
+    
+    # Get current package path
+    local current_package
+    current_package=$(find /nix/store -name "*open-webui-*" -type d | grep -v frontend | grep -v dist | head -1)
+    
+    if [[ -z "$current_package" ]]; then
+        print_warning "open-webui package not found"
+        return 1
+    fi
+    
+    local current_version
+    current_version=$(basename "$current_package" | sed 's/open-webui-//')
+    
+    # Check if we have a record of the previous version
+    local version_file="${HOME}/.open-webui-version"
+    local previous_version=""
+    
+    if [[ -f "$version_file" ]]; then
+        previous_version=$(cat "$version_file")
+    fi
+    
+    print_status "Previous version: ${previous_version:-'None'}"
+    print_status "Current version: $current_version"
+    
+    if [[ "$current_version" != "$previous_version" ]]; then
+        print_status "✅ open-webui version changed"
+        echo "$current_version" > "$version_file"
+        return 0
+    else
+        print_status "ℹ️  open-webui version unchanged"
+        return 1
+    fi
+}
+
+# Run open-webup update if package changed
+update_if_needed() {
+    if check_package_changed; then
+        print_status "Running open-webup update..."
+        if "$OPEN_WEBUP_SCRIPT" update; then
+            print_status "✅ open-webui updated successfully"
+        else
+            print_warning "⚠️  open-webui update failed"
+            print_warning "Run '$OPEN_WEBUP_SCRIPT setup' manually to fix issues"
+        fi
+    else
+        print_status "ℹ️  No open-webui update needed"
+    fi
+}
+
+# Main execution
+if [[ "${1:-}" == "--force" ]]; then
+    print_status "Force update requested"
+    "$OPEN_WEBUP_SCRIPT" update
+else
+    update_if_needed
+fi

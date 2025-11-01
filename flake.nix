@@ -76,6 +76,7 @@
     darwinConfigurations = {
       a6mbp = mkDarwinConfig "a6mbp";
       mbp = mkDarwinConfig "mbp";
+      studio = mkDarwinConfig "studio";
     };
 
     # NixOS configurations

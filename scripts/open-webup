@@ -1,0 +1,345 @@
+#!/usr/bin/env bash
+
+# open-webup - Automated open-webui setup and update script for Nix configurations
+# Handles static file copying, service management, and version updates
+
+set -euo pipefail
+
+# Configuration
+DATA_DIR="${HOME}/.open-webui"
+STATIC_DIR="${DATA_DIR}/static"
+LOG_FILE="/tmp/open-webui-setup.log"
+SERVICE_NAME="org.nixos.open-webui"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Logging function
+log() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOG_FILE"
+}
+
+# Print colored output
+print_status() {
+    echo -e "${GREEN}[INFO]${NC} $1"
+}
+
+print_warning() {
+    echo -e "${YELLOW}[WARN]${NC} $1"
+}
+
+print_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+print_header() {
+    echo -e "${BLUE}=== $1 ===${NC}"
+}
+
+# Check if running on macOS
+check_macos() {
+    if [[ "$OSTYPE" != "darwin"* ]]; then
+        print_error "This script is designed for macOS only"
+        exit 1
+    fi
+}
+
+# Find current open-webui package in Nix store
+find_openwebui_package() {
+    print_header "Finding open-webui package"
+    
+    local package_path
+    package_path=$(find /nix/store -name "*open-webui-*" -type d | grep -v frontend | grep -v dist | head -1)
+    
+    if [[ -z "$package_path" ]]; then
+        print_error "open-webui package not found in Nix store"
+        print_error "Make sure open-webui is installed via nix-darwin"
+        exit 1
+    fi
+    
+    print_status "Found open-webui package: $package_path"
+    echo "$package_path"
+}
+
+# Get current open-webui version
+get_current_version() {
+    local package_path="$1"
+    local version
+    version=$(basename "$package_path" | sed 's/open-webui-//')
+    echo "$version"
+}
+
+# Create necessary directories
+create_directories() {
+    print_header "Creating directories"
+    
+    if [[ ! -d "$DATA_DIR" ]]; then
+        mkdir -p "$DATA_DIR"
+        print_status "Created data directory: $DATA_DIR"
+    fi
+    
+    if [[ ! -d "$STATIC_DIR" ]]; then
+        mkdir -p "$STATIC_DIR"
+        print_status "Created static directory: $STATIC_DIR"
+    fi
+}
+
+# Copy static files from Nix store to user directory
+copy_static_files() {
+    local package_path="$1"
+    local source_static="${package_path}/lib/python3.13/site-packages/open_webui/static"
+    
+    echo "Copying static files"
+    echo "==================="
+    
+    if [[ ! -d "$source_static" ]]; then
+        print_error "Source static directory not found: $source_static"
+        exit 1
+    fi
+    
+    # Create a temporary directory for the new static files
+    local temp_static="/tmp/open-webui-static-$(date +%s)"
+    mkdir -p "$temp_static"
+    
+    # Copy to temporary directory first
+    cp -r "$source_static"/* "$temp_static/"
+    
+    # Backup existing static directory if it exists
+    if [[ -d "$STATIC_DIR" && "$STATIC_DIR" != "/tmp" ]]; then
+        local backup_dir="${STATIC_DIR}.backup.$(date +%s)"
+        print_warning "Backing up existing static directory to: $backup_dir"
+        cp -r "$STATIC_DIR" "$backup_dir" 2>/dev/null || true
+    fi
+    
+    # Remove old static directory and move new one in place
+    rm -rf "$STATIC_DIR" 2>/dev/null || true
+    mv "$temp_static" "$STATIC_DIR"
+    
+    # Fix permissions
+    chmod -R 755 "$STATIC_DIR"
+    
+    print_status "Static files copied successfully"
+    print_status "Files copied: $(find "$STATIC_DIR" -type f | wc -l)"
+}
+
+# Check if service is running
+check_service_status() {
+    if launchctl list | grep -q "$SERVICE_NAME"; then
+        local pid
+        local status
+        pid=$(launchctl list | grep "$SERVICE_NAME" | awk '{print $1}')
+        status=$(launchctl list | grep "$SERVICE_NAME" | awk '{print $2}')
+        
+        # Check if process is actually running
+        if [[ "$pid" =~ ^[0-9]+$ ]] && kill -0 "$pid" 2>/dev/null; then
+            echo "running"
+        elif [[ "$status" == "0" ]]; then
+            echo "running"
+        else
+            echo "unknown"
+        fi
+    else
+        echo "not_loaded"
+    fi
+}
+
+# Restart open-webui service
+restart_service() {
+    echo "Managing open-webui service"
+    echo "==========================="
+    
+    local current_status
+    current_status=$(check_service_status)
+    
+    print_status "Current service status: $current_status"
+    
+    # Use kickstart to restart the service (more reliable)
+    print_status "Restarting open-webui service..."
+    launchctl kickstart -k "gui/$(id -u)/$SERVICE_NAME" || true
+    
+    # Wait for service to restart
+    sleep 5
+    
+    # Check new status
+    local new_status
+    new_status=$(check_service_status)
+    print_status "New service status: $new_status"
+    
+    if [[ "$new_status" == "running" ]]; then
+        print_status "✅ Service restarted successfully"
+    else
+        print_error "❌ Service failed to restart"
+        print_error "Check logs with: tail -f /tmp/open-webui.error.log"
+        return 1
+    fi
+}
+
+# Test if open-webui is accessible
+test_webui() {
+    print_header "Testing open-webui accessibility"
+    
+    local max_attempts=30
+    local attempt=1
+    
+    while [[ $attempt -le $max_attempts ]]; do
+        if curl -s -f http://localhost:8080 > /dev/null 2>&1; then
+            print_status "✅ open-webui is accessible at http://localhost:8080"
+            return 0
+        fi
+        
+        print_status "Attempt $attempt/$max_attempts: Waiting for open-webui to start..."
+        sleep 2
+        ((attempt++))
+    done
+    
+    print_error "❌ open-webui is not accessible after $max_attempts attempts"
+    return 1
+}
+
+# Check for updates
+check_for_updates() {
+    print_header "Checking for updates"
+    
+    local current_version
+    current_version=$(get_current_version "$(find_openwebui_package)")
+    
+    print_status "Current version: $current_version"
+    
+    # Check if flake.lock has been updated (simplified check)
+    local flake_lock_path="${SCRIPT_DIR}/../flake.lock"
+    if [[ -f "$flake_lock_path" ]]; then
+        local lock_mtime
+        lock_mtime=$(stat -f "%m" "$flake_lock_path" 2>/dev/null || echo "0")
+        local current_time
+        current_time=$(date +%s)
+        local age_hours
+        age_hours=$(( (current_time - lock_mtime) / 3600 ))
+        
+        if [[ $age_hours -gt 24 ]]; then
+            print_warning "flake.lock is $age_hours hours old. Consider running 'nix flake update'"
+        else
+            print_status "flake.lock is recent ($age_hours hours ago)"
+        fi
+    fi
+}
+
+# Show status
+show_status() {
+    echo "open-webui Status"
+    echo "=================="
+    
+    # Find package without printing header
+    local package_path
+    package_path=$(find /nix/store -name "*open-webui-*" -type d | grep -v frontend | grep -v dist | head -1)
+    
+    local version
+    version=$(basename "$package_path" | sed 's/open-webui-//')
+    
+    echo "Version: $version"
+    echo "Package: $package_path"
+    echo "Data Directory: $DATA_DIR"
+    echo "Static Directory: $STATIC_DIR"
+    echo "Service Status: $(check_service_status)"
+    
+    if [[ -f "$LOG_FILE" ]]; then
+        echo "Last Setup: $(tail -1 "$LOG_FILE" | cut -d' ' -f1-2)"
+    fi
+}
+
+# Main setup function
+main_setup() {
+    print_header "open-webui Automated Setup"
+    
+    check_macos
+    check_for_updates
+    
+    local package_path
+    package_path=$(find_openwebui_package)
+    
+    create_directories
+    copy_static_files "$package_path"
+    restart_service
+    
+    if test_webui; then
+        print_status "🎉 open-webui setup completed successfully!"
+        print_status "Access your web UI at: http://localhost:8080"
+    else
+        print_error "Setup completed but web UI is not accessible"
+        print_error "Check the error log: tail -f /tmp/open-webui.error.log"
+        exit 1
+    fi
+}
+
+# Update function
+update_only() {
+    echo "Updating open-webui"
+    echo "==================="
+    
+    local package_path
+    package_path=$(find /nix/store -name "*open-webui-*" -type d | grep -v frontend | grep -v dist | head -1)
+    
+    copy_static_files "$package_path"
+    restart_service
+    test_webui
+}
+
+# Show help
+show_help() {
+    cat << EOF
+open-webup - Automated open-webui setup and update script
+
+USAGE:
+    open-webup [COMMAND]
+
+COMMANDS:
+    setup       Full setup (default)
+    update      Update static files and restart service
+    status      Show current status
+    help        Show this help message
+
+EXAMPLES:
+    open-webup              # Full setup
+    open-webup setup         # Full setup
+    open-webup update        # Update only
+    open-webup status        # Show status
+
+FILES:
+    $DATA_DIR          - open-webui data directory
+    $STATIC_DIR         - Static files directory
+    $LOG_FILE           - Setup log file
+
+REQUIREMENTS:
+    - macOS with nix-darwin
+    - open-webui package installed
+    - ollama service running
+
+EOF
+}
+
+# Script directory detection
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Main script logic
+case "${1:-setup}" in
+    "setup")
+        main_setup
+        ;;
+    "update")
+        update_only
+        ;;
+    "status")
+        show_status
+        ;;
+    "help"|"-h"|"--help")
+        show_help
+        ;;
+    *)
+        print_error "Unknown command: $1"
+        show_help
+        exit 1
+        ;;
+esac
