@@ -18,4 +18,26 @@
       "zen"
     ];
   };
+
+  # Ollama service configuration
+  launchd.user.agents.ollama = {
+    serviceConfig = {
+      ProgramArguments = [ "/opt/homebrew/bin/ollama" "serve" ];
+      RunAtLoad = true;
+      KeepAlive = true;
+      StandardOutPath = "/tmp/ollama.log";
+      StandardErrorPath = "/tmp/ollama.error.log";
+      EnvironmentVariables = {
+        OLLAMA_HOST = "0.0.0.0:11434";
+        OLLAMA_ORIGINS = "*";
+      };
+    };
+  };
+
+  # Open firewall port for Ollama
+  system.activationScripts.postActivation.text = ''
+    # Open port 11434 for Ollama
+    /usr/libexec/ApplicationFirewall/socketfilterfw --add /opt/homebrew/bin/ollama
+    /usr/libexec/ApplicationFirewall/socketfilterfw --unblock /opt/homebrew/bin/ollama
+  '';
 }
