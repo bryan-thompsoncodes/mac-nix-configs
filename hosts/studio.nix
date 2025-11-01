@@ -30,6 +30,8 @@
       EnvironmentVariables = {
         OLLAMA_HOST = "0.0.0.0:11434";
         OLLAMA_ORIGINS = "*";
+        OLLAMA_FLASH_ATTENTION = "1";
+        OLLAMA_KV_CACHE_TYPE = "q8_0";
       };
     };
   };
