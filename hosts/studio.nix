@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, config, ... }:
 
 {
   imports = [
@@ -33,7 +33,7 @@
       StandardOutPath = "/tmp/ollama.log";
       StandardErrorPath = "/tmp/ollama.error.log";
       EnvironmentVariables = {
-        OLLAMA_HOST = "0.0.0.0:11434";
+        OLLAMA_HOST = "127.0.0.1:11434";
         OLLAMA_ORIGINS = "*";
         OLLAMA_FLASH_ATTENTION = "1";
         OLLAMA_KV_CACHE_TYPE = "q8_0";
@@ -43,27 +43,30 @@
   };
 
   # Open WebUI service configuration (pip-based)
-  launchd.user.agents.open-webui = {
-    path = [ "$HOME/Library/Python/3.11/bin" ];
-    serviceConfig = {
-      ProgramArguments = [
-        "$HOME/Library/Python/3.11/bin/open-webui"
-        "serve"
-      ];
-      RunAtLoad = true;
-      KeepAlive = true;
-      StandardOutPath = "/tmp/open-webui.log";
-      StandardErrorPath = "/tmp/open-webui.error.log";
-      WorkingDirectory = "$HOME/.open-webui";
-      EnvironmentVariables = {
-        PORT = "8080";
-        OLLAMA_BASE_URL = "http://127.0.0.1:11434";
-        WEBUI_AUTH = "true";
-        DATA_DIR = "$HOME/.open-webui/data";
-        HOME = "$HOME";
+  launchd.user.agents.open-webui =
+    let
+      homeDir = "/Users/${config.system.primaryUser}";
+    in {
+      path = [ "${homeDir}/Library/Python/3.11/bin" ];
+      serviceConfig = {
+        ProgramArguments = [
+          "${homeDir}/Library/Python/3.11/bin/open-webui"
+          "serve"
+        ];
+        RunAtLoad = true;
+        KeepAlive = true;
+        StandardOutPath = "/tmp/open-webui.log";
+        StandardErrorPath = "/tmp/open-webui.error.log";
+        WorkingDirectory = "${homeDir}/.open-webui";
+        EnvironmentVariables = {
+          PORT = "8080";
+          OLLAMA_BASE_URL = "http://127.0.0.1:11434";
+          WEBUI_AUTH = "true";
+          DATA_DIR = "${homeDir}/.open-webui/data";
+          HOME = homeDir;
+        };
       };
     };
-  };
 
   # === Network Storage ===
 
@@ -89,7 +92,7 @@
             echo "Please create it with the following format:"
             echo "USERNAME=your_username"
             echo "PASSWORD=your_password"
-            echo "SERVER=192.168.1.3"
+            echo "SERVER=192.168.1.x"
             echo "SHARE=media"
             exit 1
           fi
