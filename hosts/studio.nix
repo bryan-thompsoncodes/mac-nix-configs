@@ -14,12 +14,15 @@
       "ollama"
       "prometheus"
       "grafana"
+      "python@3.11"  # For Open WebUI
     ];
     # Additional casks for this host
     casks = [
       "zen"
     ];
   };
+
+  # === AI/LLM Services ===
 
   # Ollama service configuration
   launchd.user.agents.ollama = {
@@ -29,18 +32,50 @@
       KeepAlive = true;
       StandardOutPath = "/tmp/ollama.log";
       StandardErrorPath = "/tmp/ollama.error.log";
-EnvironmentVariables = {
+      EnvironmentVariables = {
         OLLAMA_HOST = "0.0.0.0:11434";
+        OLLAMA_ORIGINS = "*";
         OLLAMA_FLASH_ATTENTION = "1";
         OLLAMA_KV_CACHE_TYPE = "q8_0";
+        OLLAMA_KEEP_ALIVE = "0";
       };
     };
   };
 
+  # Open WebUI service configuration (pip-based)
+  launchd.user.agents.open-webui = {
+    path = [ "/Users/bryan/Library/Python/3.11/bin" ];
+    serviceConfig = {
+      ProgramArguments = [
+        "/Users/bryan/Library/Python/3.11/bin/open-webui"
+        "serve"
+      ];
+      RunAtLoad = true;
+      KeepAlive = true;
+      StandardOutPath = "/tmp/open-webui.log";
+      StandardErrorPath = "/tmp/open-webui.error.log";
+      WorkingDirectory = "/Users/bryan/.open-webui";
+      EnvironmentVariables = {
+        PORT = "8080";
+        OLLAMA_BASE_URL = "http://127.0.0.1:11434";
+        WEBUI_AUTH = "false";
+        DATA_DIR = "/Users/bryan/.open-webui/data";
+        HOME = "/Users/bryan";
+      };
+    };
+  };
+
+  # === Monitoring Services ===
+
   # Prometheus service configuration
   launchd.user.agents.prometheus = {
     serviceConfig = {
-      ProgramArguments = [ "/opt/homebrew/opt/prometheus/bin/prometheus" "--config.file=/tmp/prometheus.yml" "--web.listen-address=0.0.0.0:9090" "--storage.tsdb.path=/tmp/prometheus" ];
+      ProgramArguments = [
+        "/opt/homebrew/opt/prometheus/bin/prometheus"
+        "--config.file=/opt/homebrew/etc/prometheus.yml"
+        "--web.listen-address=0.0.0.0:9090"
+        "--storage.tsdb.path=/tmp/prometheus"
+      ];
       RunAtLoad = true;
       KeepAlive = true;
       StandardOutPath = "/tmp/prometheus.log";
@@ -51,7 +86,12 @@ EnvironmentVariables = {
   # Grafana service configuration
   launchd.user.agents.grafana = {
     serviceConfig = {
-      ProgramArguments = [ "/opt/homebrew/opt/grafana/bin/grafana" "server" "--homepath=/opt/homebrew/opt/grafana/share/grafana" "--config=/opt/homebrew/etc/grafana/grafana.ini" ];
+      ProgramArguments = [
+        "/opt/homebrew/opt/grafana/bin/grafana"
+        "server"
+        "--homepath=/opt/homebrew/opt/grafana/share/grafana"
+        "--config=/opt/homebrew/etc/grafana/grafana.ini"
+      ];
       RunAtLoad = true;
       KeepAlive = true;
       StandardOutPath = "/tmp/grafana.log";
@@ -63,8 +103,27 @@ EnvironmentVariables = {
     };
   };
 
-  # Service management and firewall setup
-  system.activationScripts.postActivation.text = ''
+  # === Activation Scripts ===
+
+  # Install Open WebUI via pip
+  system.activationScripts.install-open-webui.text = ''
+    # Check if Python 3.11 is available
+    if [ -f /opt/homebrew/bin/pip3.11 ]; then
+      echo "Installing/updating Open WebUI via pip..."
+      /opt/homebrew/bin/pip3.11 install --user --upgrade open-webui
+      echo "Open WebUI installed/updated successfully"
+
+      # Create data directory for Open WebUI
+      mkdir -p /Users/bryan/.open-webui/data
+      chown bryan:staff /Users/bryan/.open-webui/data
+      echo "Open WebUI data directory created"
+    else
+      echo "Python 3.11 not yet installed, skipping Open WebUI setup"
+    fi
+  '';
+
+  # Firewall setup for services
+  system.activationScripts.firewall.text = ''
     # Open port 11434 for Ollama
     /usr/libexec/ApplicationFirewall/socketfilterfw --add /opt/homebrew/bin/ollama
     /usr/libexec/ApplicationFirewall/socketfilterfw --unblock /opt/homebrew/bin/ollama
@@ -74,25 +133,8 @@ EnvironmentVariables = {
     # Open port 3000 for Grafana
     /usr/libexec/ApplicationFirewall/socketfilterfw --add /opt/homebrew/opt/grafana/bin/grafana
     /usr/libexec/ApplicationFirewall/socketfilterfw --unblock /opt/homebrew/opt/grafana/bin/grafana
-    # Create Prometheus config file
-    cat > /tmp/prometheus.yml << 'EOF'
-global:
-  scrape_interval: 15s
-  evaluation_interval: 15s
-
-scrape_configs:
-  - job_name: "prometheus"
-    static_configs:
-    - targets: ["localhost:9090"]
-  - job_name: "grafana"
-    static_configs:
-    - targets: ["localhost:3000"]
-    metrics_path: "/api/metrics"
-    scrape_interval: 30s
-EOF
-    # Ensure services are properly restarted with new configuration
-    # Kill any existing Prometheus processes to force reload with new config
-    pkill -f "prometheus" 2>/dev/null || true
-    sleep 2
+    # Open port 8080 for Open WebUI
+    /usr/libexec/ApplicationFirewall/socketfilterfw --add /opt/homebrew/bin/python3.11
+    /usr/libexec/ApplicationFirewall/socketfilterfw --unblock /opt/homebrew/bin/python3.11
   '';
 }
