@@ -11,6 +11,8 @@
     brews = [
       "block-goose-cli"
       "node"  # Includes npm and npx for MCP extensions
+      "pandoc" # For converting documents
+      "texlive" # For converting MD to PDF (maybe smaller options out there?)
     ];
     # Additional casks for this host
     casks = [
