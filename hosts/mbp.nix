@@ -16,6 +16,7 @@
     casks = [
       "bambu-studio"
       "block-goose"
+      "discord"
       "steam"
       "zen"
     ];
