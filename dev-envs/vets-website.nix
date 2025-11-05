@@ -17,21 +17,22 @@ let
         # macOS (both Intel and Apple Silicon use x64 binary)
         pkgs.fetchurl {
           url = "https://nodejs.org/dist/v${version}/node-v${version}-darwin-x64.tar.gz";
-          sha256 = "E4n1DS+fSZNzbQQIMAUTQ012MMKFNjT7E/K2nMnmnLk=";
+          sha256 = "1fcwwv4rrdpj2gxk8dl5q8q7cka32c2k0204dmrr6jcz5w6zb28k";
         }
       else if pkgs.stdenv.isLinux && pkgs.stdenv.isx86_64 then
         # Linux x64
         pkgs.fetchurl {
           url = "https://nodejs.org/dist/v${version}/node-v${version}-linux-x64.tar.xz";
-          sha256 = "1awjvhqvw9g4mb9a5pwa8gfgwvxj7wvfjm35pkvfqxcdr9ihvqxk";
+          sha256 = "06qgbldrmkqiv2dav2fs4z1x0b6ykk0gh997hf0frvd3z96bkrck";
         }
       else
         throw "Unsupported platform: ${pkgs.stdenv.system}. This flake supports macOS and Linux x64 only.";
 
-    buildInputs = [ pkgs.makeWrapper ];
+    nativeBuildInputs = if pkgs.stdenv.isLinux then [ pkgs.autoPatchelfHook ] else [];
+    buildInputs = [ pkgs.makeWrapper ] ++ (if pkgs.stdenv.isLinux then [ pkgs.gcc.cc.lib ] else []);
 
     dontStrip = true;
-    dontPatchELF = true;
+    dontPatchELF = !pkgs.stdenv.isLinux;
 
     installPhase = ''
       mkdir -p $out
