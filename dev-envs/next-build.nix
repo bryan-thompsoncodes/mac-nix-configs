@@ -9,12 +9,7 @@ let
   # Yarn 3.x (berry)
   yarn = pkgs.yarn-berry.override { inherit nodejs; };
 
-  # Tools required by vtk socks setup
-  vtkDependencies = with pkgs; [
-    jq
-    awscli2
-    openssh
-  ];
+
 
 in
 pkgs.mkShell {
@@ -23,7 +18,7 @@ pkgs.mkShell {
     yarn
     pkgs.git
     pkgs.docker
-  ] ++ lib.commonBuildTools ++ vtkDependencies ++ lib.browserTestingDeps;
+   ] ++ lib.commonBuildTools ++ lib.browserTestingDeps;
 
   shellHook = ''
     echo "🚀 next-build development environment"
@@ -32,16 +27,12 @@ pkgs.mkShell {
     echo "Yarn version: $(yarn --version)"
     echo "Python version: $(python3 --version)"
     echo "Docker version: $(docker --version)"
-    echo ""
-    echo "✅ VTK dependencies available (jq, awscli2, openssh)"
-    echo "   - You can run 'vtk socks setup' if needed"
-    echo ""
-    echo "📦 Next steps:"
-    echo "  1. Run 'vtk socks on' to enable SOCKS proxy"
-    echo "  2. Run 'yarn install' to install dependencies"
-    echo "  3. Run 'yarn setup' to pull initial assets from vets-website"
-    echo "  4. Run 'yarn redis' to start Redis in Docker"
-    echo "  5. Run 'yarn dev' to start the dev server"
+     echo ""
+     echo "📦 Next steps:"
+     echo "  1. Run 'yarn install' to install dependencies"
+     echo "  2. Run 'yarn setup' to pull initial assets from vets-website"
+     echo "  3. Run 'yarn redis' to start Redis in Docker"
+     echo "  4. Run 'yarn dev' to start the dev server"
     echo ""
     echo "💡 Useful commands:"
     echo "  - yarn dev              # Start Next.js dev server"
