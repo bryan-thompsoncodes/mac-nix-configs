@@ -1,8 +1,60 @@
 { pkgs, config, ... }:
 
+let
+  # Manual upgrade script for Open WebUI
+  upgrade-open-webui = pkgs.writeShellScriptBin "upgrade-open-webui" ''
+    #!/bin/bash
+    set -e
+
+    echo "=== Open WebUI Manual Upgrade ==="
+    echo ""
+
+    # Check if Python 3.11 is available
+    if [ ! -f /opt/homebrew/bin/pip3.11 ]; then
+      echo "ERROR: Python 3.11 not found at /opt/homebrew/bin/pip3.11"
+      echo "Please install it with: brew install python@3.11"
+      exit 1
+    fi
+
+    # Get current version
+    CURRENT_VERSION=$(/opt/homebrew/bin/pip3.11 show open-webui 2>/dev/null | grep Version | cut -d' ' -f2 || echo "not installed")
+    echo "Current version: $CURRENT_VERSION"
+    echo ""
+
+    # Upgrade
+    echo "Upgrading Open WebUI..."
+    /opt/homebrew/bin/pip3.11 install --user --upgrade open-webui
+    echo ""
+
+    # Get new version
+    NEW_VERSION=$(/opt/homebrew/bin/pip3.11 show open-webui 2>/dev/null | grep Version | cut -d' ' -f2 || echo "unknown")
+    echo "New version: $NEW_VERSION"
+    echo ""
+
+    if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
+      echo "✓ Upgraded from $CURRENT_VERSION to $NEW_VERSION"
+      echo ""
+      echo "Restarting Open WebUI service..."
+      launchctl kickstart -k "gui/$(id -u)/org.nixos.open-webui"
+      echo "✓ Service restarted"
+    else
+      echo "Already at latest version ($NEW_VERSION)"
+    fi
+
+    echo ""
+    echo "=== Upgrade Complete ==="
+    echo "Open WebUI should now be running version $NEW_VERSION"
+    echo "Access it at: http://localhost:8080"
+  '';
+in
 {
   imports = [
     ./darwin-common.nix
+  ];
+
+  # Host-specific packages
+  environment.systemPackages = [
+    upgrade-open-webui
   ];
 
   # Host-specific Homebrew configuration
@@ -216,17 +268,43 @@
   '';
 
   # Install Open WebUI via pip
-  system.activationScripts.install-open-webui.text = ''
+  # Note: This runs during system activation
+  system.activationScripts.postActivation.text = ''
+    echo ""
+    echo "=== Open WebUI Upgrade Check at $(date) ==="
+
     # Check if Python 3.11 is available
     if [ -f /opt/homebrew/bin/pip3.11 ]; then
-      echo "Installing/updating Open WebUI via pip..."
+
+      # Get current version if installed
+      CURRENT_VERSION=$(/opt/homebrew/bin/pip3.11 show open-webui 2>/dev/null | grep Version | cut -d' ' -f2 || echo "not installed")
+      echo "Current version: $CURRENT_VERSION"
+
+      # Upgrade Open WebUI
+      echo "Running pip upgrade..."
       /opt/homebrew/bin/pip3.11 install --user --upgrade open-webui
-      echo "Open WebUI installed/updated successfully"
+
+      # Get new version
+      NEW_VERSION=$(/opt/homebrew/bin/pip3.11 show open-webui 2>/dev/null | grep Version | cut -d' ' -f2 || echo "unknown")
+      echo "New version: $NEW_VERSION"
+
+      if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
+        echo "✓ Open WebUI upgraded from $CURRENT_VERSION to $NEW_VERSION"
+        echo "Restarting Open WebUI service..."
+
+        # Restart the service to use the new version
+        launchctl kickstart -k "gui/$(id -u)/org.nixos.open-webui" 2>/dev/null || echo "Service will start on next login"
+        echo "✓ Service restarted successfully"
+      else
+        echo "Open WebUI already at latest version ($NEW_VERSION)"
+      fi
 
       # Create data directory for Open WebUI
       mkdir -p $HOME/.open-webui/data
-      chown $(id -un):staff $HOME/.open-webui/data
-      echo "Open WebUI data directory created"
+      chown "$(id -un):staff" $HOME/.open-webui/data
+
+      echo "=== Open WebUI setup complete ==="
+      echo ""
     else
       echo "Python 3.11 not yet installed, skipping Open WebUI setup"
     fi
