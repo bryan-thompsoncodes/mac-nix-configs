@@ -143,6 +143,9 @@ for repo in "${REPOS_TO_CREATE[@]}"; do
 # Automatically load nix development environment
 use flake $flake_ref
 
+# Watch for flake changes to trigger reload
+watch_file $FLAKE_PATH/dev-envs/${repo}.nix
+
 # Add any repo-specific environment variables below
 EOF
 
