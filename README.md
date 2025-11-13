@@ -47,7 +47,7 @@ curl -fsSL https://install.determinate.systems/nix | sh -s -- install --determin
 Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/nix-configs.git ~/code/nix-configs
+git clone https://git.snowboardtechie.com/bryan/nix-configs.git ~/code/nix-configs
 cd ~/code/nix-configs
 ```
 
@@ -115,6 +115,10 @@ cd ~/code/nix-configs
 - [Nix Manual](https://nixos.org/manual/nix/stable/)
 - [nix-darwin Documentation](https://daiderd.com/nix-darwin/manual/)
 - [Nixpkgs Package Search](https://search.nixos.org/packages)
+
+## 3 gits, one repo
+
+This repository syncs to multiple remotes. The primary repository is at [git.snowboardtechie.com](https://git.snowboardtechie.com/bryan/nix-configs), with backups on [Codeberg](https://codeberg.org/SnowboardTechie/nix-configs) and [GitHub](https://github.com/bryan-thompsoncodes/nix-configs).
 
 ## License
 
