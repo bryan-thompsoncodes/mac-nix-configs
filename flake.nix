@@ -20,10 +20,16 @@
   let
     inherit (self) outputs;
 
+    # Overlays
+    overlays = import ./overlays {inherit inputs;};
+
     # Helper function to create pkgs for a given system
     mkPkgs = system: import nixpkgs {
       inherit system;
       config.allowUnfree = true;
+      overlays = [
+        overlays.unstable
+      ];
     };
 
     # macOS system

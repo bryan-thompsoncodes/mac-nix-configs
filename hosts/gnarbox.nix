@@ -25,9 +25,7 @@
   nixpkgs = {
     # Add overlays from flake exports
     overlays = [
-      outputs.overlays.additions
       outputs.overlays.unstable
-      outputs.overlays.modifications
     ];
     # Configure nixpkgs instance
     config = {
@@ -127,6 +125,7 @@
   programs.gnupg.agent = {
     enable = true;
     enableSSHSupport = true;
+    pinentryPackage = pkgs.pinentry-gnome3;
   };
 
   # Enable gamemode
@@ -170,9 +169,11 @@
     eza
     fzf
     direnv
+    nix-direnv
     stow
     tmux
     ncurses
+    pinentry-gnome3
 
     # Zsh plugins
     zsh-powerlevel10k
