@@ -3,7 +3,6 @@
   outputs,
   config,
   pkgs,
-  cursor,
   meta,
   ... 
 }:
@@ -196,7 +195,7 @@
 
     # Unstable packages
     unstable.claude-code
-    cursor  # From jetpham's fork: v2.0.38
+    cursor  # Local package (v2.0.77)
 
     # AI coding assistants
     opencode

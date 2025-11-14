@@ -36,22 +36,6 @@
         "type": "github"
       }
     },
-    "nixpkgs-cursor": {
-      "locked": {
-        "lastModified": 1761791774,
-        "narHash": "sha256-557WxdWDUsRcNLepe4fi6U1CYaXaXb9ctoAs/hsF/do=",
-        "owner": "jetpham",
-        "repo": "nixpkgs",
-        "rev": "a533941e29a39bfee9813c36ad1ac031338fd23c",
-        "type": "github"
-      },
-      "original": {
-        "owner": "jetpham",
-        "repo": "nixpkgs",
-        "rev": "a533941e29a39bfee9813c36ad1ac031338fd23c",
-        "type": "github"
-      }
-    },
     "nixpkgs-unstable": {
       "locked": {
         "lastModified": 1762977756,
@@ -72,7 +56,6 @@
       "inputs": {
         "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs",
-        "nixpkgs-cursor": "nixpkgs-cursor",
         "nixpkgs-unstable": "nixpkgs-unstable"
       }
     }
