@@ -12,7 +12,7 @@
 
 let
   inherit (stdenv) hostPlatform;
-  finalCommandLineArgs = "--update=false " + commandLineArgs;
+  finalCommandLineArgs = commandLineArgs;
 
   sources = {
     x86_64-linux = fetchurl {
