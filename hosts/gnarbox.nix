@@ -3,6 +3,7 @@
   outputs,
   config,
   pkgs,
+  lib,
   meta,
   ... 
 }:
@@ -49,6 +50,9 @@
   # LUKS device configuration
   boot.initrd.luks.devices."luks-5b933bbd-d285-4b20-8b90-0d18947e77f6".device = "/dev/disk/by-uuid/5b933bbd-d285-4b20-8b90-0d18947e77f6";
 
+  # Hibernation support - configure resume device for power button hibernation
+  boot.resumeDevice = "/dev/disk/by-uuid/84deb268-57ba-4cfe-ab1a-85a971db89ce";
+
   # Networking
   networking.hostName = meta.hostname; # Define your hostname in flake
   networking.networkmanager.enable = true;
@@ -75,8 +79,22 @@
   services.xserver.enable = true;
 
   # Enable the GNOME Desktop Environment
-  services.displayManager.gdm.enable = true;
-  services.desktopManager.gnome.enable = true;
+  services.displayManager.gdm = {
+    enable = true;
+    # Disable automatic suspend in GDM (prevents auto-suspend when idle)
+    autoSuspend = false;
+  };
+  services.desktopManager.gnome = {
+    enable = true;
+    # Configure GNOME power settings to prevent user-level overrides
+    extraGSettingsOverrides = ''
+      [org.gnome.settings-daemon.plugins.power]
+      sleep-inactive-ac-type='nothing'
+      sleep-inactive-battery-type='nothing'
+      sleep-inactive-ac-timeout=0
+      sleep-inactive-battery-timeout=0
+    '';
+  };
 
   # Configure keymap in X11
   services.xserver.xkb = {
@@ -142,6 +160,26 @@
     remotePlay.openFirewall = true;
     dedicatedServer.openFirewall = true;
   };
+
+  # Power management configuration
+  # Prevent automatic sleep to allow Steam streaming
+  # Power button will hibernate the system
+  services.logind = {
+    settings.Login = {
+      # Power button triggers hibernate
+      HandlePowerKey = "hibernate";
+      # Suspend key (if present) does nothing
+      HandleSuspendKey = "ignore";
+      # Lid switch (if laptop) does nothing
+      HandleLidSwitch = "ignore";
+      # Disable automatic sleep on idle
+      IdleAction = "ignore";
+      IdleActionSec = 0;
+    };
+  };
+
+  # Disable upower - not needed on desktop without batteries
+  services.upower.enable = lib.mkForce false;
 
   # System packages
   environment.systemPackages = with pkgs; [
