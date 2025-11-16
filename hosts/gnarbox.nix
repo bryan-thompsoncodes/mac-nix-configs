@@ -161,6 +161,10 @@
     dedicatedServer.openFirewall = true;
   };
 
+  # Xbox Elite 2 controller support
+  # Enables force feedback, trigger rumble, and battery level reporting
+  hardware.xone.enable = true;
+
   # Power management configuration
   # Prevent automatic sleep to allow Steam streaming
   # Power button will hibernate the system
