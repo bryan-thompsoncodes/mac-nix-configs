@@ -93,6 +93,9 @@
       sleep-inactive-battery-type='nothing'
       sleep-inactive-ac-timeout=0
       sleep-inactive-battery-timeout=0
+
+      [org.gnome.shell]
+      enabled-extensions=['hidetopbar@mathieu.bidon.ca']
     '';
   };
 
@@ -243,6 +246,9 @@
     # AI coding assistants
     opencode
     goose-cli
+
+    # GNOME extensions
+    gnomeExtensions.hide-top-bar
 
     # Host-specific packages
     #bambu-studio
