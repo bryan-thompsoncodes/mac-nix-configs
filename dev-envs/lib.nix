@@ -7,6 +7,7 @@
     gcc
     gnumake
     pkg-config
+    bun
   ];
 
   # Common system dependencies for browser automation tools (Cypress, Playwright, Puppeteer)
@@ -51,9 +52,5 @@
 
     # Work around Nix store read-only issues
     export ESLINT_USE_FLAT_CONFIG=false
-
-    # Remove nix-direnv's symlinks to Nix store source copies
-    # These symlinks cause webpack/build tools to resolve to read-only store paths
-    rm -rf .direnv/flake-inputs/*-source 2>/dev/null || true
   '';
 }

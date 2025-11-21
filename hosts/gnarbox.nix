@@ -225,6 +225,7 @@
     redis
     libpq
     gnupg
+    bun
 
     # Media
     vlc

@@ -46,6 +46,49 @@ let
     echo "Open WebUI should now be running version $NEW_VERSION"
     echo "Access it at: http://localhost:8080"
   '';
+  homeDir = "/Users/${config.system.primaryUser}";
+  pip3Path = "/opt/homebrew/bin/pip3.11";
+  openWebUIBinary = "${homeDir}/Library/Python/3.11/bin/open-webui";
+  # Use pip-installed Open WebUI so we can track upstream releases immediately.
+  # Homebrew lags behind, so this host intentionally bootstraps via pip3.11.
+  openWebUIRunner = pkgs.writeShellScriptBin "run-open-webui" ''
+    #!/bin/bash
+    set -euo pipefail
+
+    export HOME="${homeDir}"
+    export PATH="/opt/homebrew/bin:$PATH"
+
+    if [ ! -x "${pip3Path}" ]; then
+      echo "ERROR: pip3.11 not found at ${pip3Path}"
+      exit 1
+    fi
+
+    if [ ! -x "${openWebUIBinary}" ]; then
+      echo "Installing Open WebUI into $HOME/Library/Python/3.11"
+      "${pip3Path}" install --user --upgrade pip setuptools wheel
+      "${pip3Path}" install --user --upgrade open-webui
+    fi
+
+    mkdir -p "${homeDir}/.open-webui/data"
+
+    exec "${openWebUIBinary}" serve
+  '';
+  openWebUIUpdater = pkgs.writeShellScriptBin "update-open-webui" ''
+    #!/bin/bash
+    set -euo pipefail
+
+    export HOME="${homeDir}"
+    export PATH="/opt/homebrew/bin:$PATH"
+
+    if [ ! -x "${pip3Path}" ]; then
+      echo "ERROR: pip3.11 not found at ${pip3Path}"
+      exit 1
+    fi
+
+    echo "Checking for Open WebUI updates..."
+    "${pip3Path}" install --user --upgrade open-webui
+    launchctl kickstart -k "gui/$(id -u)/org.nixos.open-webui" >/dev/null 2>&1 || true
+  '';
 in
 {
   imports = [
@@ -95,30 +138,37 @@ in
   };
 
   # Open WebUI service configuration (pip-based)
-  launchd.user.agents.open-webui =
-    let
-      homeDir = "/Users/${config.system.primaryUser}";
-    in {
-      path = [ "${homeDir}/Library/Python/3.11/bin" ];
-      serviceConfig = {
-        ProgramArguments = [
-          "${homeDir}/Library/Python/3.11/bin/open-webui"
-          "serve"
-        ];
-        RunAtLoad = true;
-        KeepAlive = true;
-        StandardOutPath = "/tmp/open-webui.log";
-        StandardErrorPath = "/tmp/open-webui.error.log";
-        WorkingDirectory = "${homeDir}/.open-webui";
-        EnvironmentVariables = {
-          PORT = "8080";
-          OLLAMA_BASE_URL = "http://127.0.0.1:11434";
-          WEBUI_AUTH = "true";
-          DATA_DIR = "${homeDir}/.open-webui/data";
-          HOME = homeDir;
-        };
+  launchd.user.agents.open-webui = {
+    serviceConfig = {
+      ProgramArguments = [
+        "${openWebUIRunner}/bin/run-open-webui"
+      ];
+      RunAtLoad = true;
+      KeepAlive = true;
+      StandardOutPath = "/tmp/open-webui.log";
+      StandardErrorPath = "/tmp/open-webui.error.log";
+      WorkingDirectory = "${homeDir}/.open-webui";
+      EnvironmentVariables = {
+        PORT = "8080";
+        OLLAMA_BASE_URL = "http://127.0.0.1:11434";
+        WEBUI_AUTH = "true";
+        DATA_DIR = "${homeDir}/.open-webui/data";
+        HOME = homeDir;
       };
     };
+  };
+
+  launchd.user.agents.open-webui-updater = {
+    serviceConfig = {
+      ProgramArguments = [
+        "${openWebUIUpdater}/bin/update-open-webui"
+      ];
+      RunAtLoad = true;
+      StartInterval = 86400;
+      StandardOutPath = "/tmp/open-webui.updater.log";
+      StandardErrorPath = "/tmp/open-webui.updater.error.log";
+    };
+  };
 
   # === Network Storage ===
 
@@ -136,9 +186,12 @@ in
           MAX_RETRIES=30
           RETRY_DELAY=2
 
-          echo "=== SMB Mount Script Started at $(date) ==="
+           echo "=== SMB Mount Script Started at $(date) ==="
 
-          # Load credentials
+           # Give network time to settle
+           sleep 5
+
+           # Load credentials
           if [ ! -f "$CREDENTIALS_FILE" ]; then
             echo "ERROR: Credentials file not found at $CREDENTIALS_FILE"
             echo "Please create it with the following format:"
@@ -205,8 +258,9 @@ in
           fi
         ''}"
       ];
-      RunAtLoad = true;
-      KeepAlive = false;
+       RunAtLoad = true;
+       KeepAlive = false;
+       StartInterval = 300;
       StandardOutPath = "/tmp/smb-mount.log";
       StandardErrorPath = "/tmp/smb-mount.error.log";
     };
@@ -265,49 +319,6 @@ in
     echo "Then restart or run: launchctl kickstart -k gui/\$(id -u)/org.nixos.smb-mount"
     echo "Check mount status: cat /tmp/smb-mount.log"
     echo ""
-  '';
-
-  # Install Open WebUI via pip
-  # Note: This runs during system activation
-  system.activationScripts.postActivation.text = ''
-    echo ""
-    echo "=== Open WebUI Upgrade Check at $(date) ==="
-
-    # Check if Python 3.11 is available
-    if [ -f /opt/homebrew/bin/pip3.11 ]; then
-
-      # Get current version if installed
-      CURRENT_VERSION=$(/opt/homebrew/bin/pip3.11 show open-webui 2>/dev/null | grep Version | cut -d' ' -f2 || echo "not installed")
-      echo "Current version: $CURRENT_VERSION"
-
-      # Upgrade Open WebUI
-      echo "Running pip upgrade..."
-      /opt/homebrew/bin/pip3.11 install --user --upgrade open-webui
-
-      # Get new version
-      NEW_VERSION=$(/opt/homebrew/bin/pip3.11 show open-webui 2>/dev/null | grep Version | cut -d' ' -f2 || echo "unknown")
-      echo "New version: $NEW_VERSION"
-
-      if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
-        echo "✓ Open WebUI upgraded from $CURRENT_VERSION to $NEW_VERSION"
-        echo "Restarting Open WebUI service..."
-
-        # Restart the service to use the new version
-        launchctl kickstart -k "gui/$(id -u)/org.nixos.open-webui" 2>/dev/null || echo "Service will start on next login"
-        echo "✓ Service restarted successfully"
-      else
-        echo "Open WebUI already at latest version ($NEW_VERSION)"
-      fi
-
-      # Create data directory for Open WebUI
-      mkdir -p $HOME/.open-webui/data
-      chown "$(id -un):staff" $HOME/.open-webui/data
-
-      echo "=== Open WebUI setup complete ==="
-      echo ""
-    else
-      echo "Python 3.11 not yet installed, skipping Open WebUI setup"
-    fi
   '';
 
   # Firewall setup for services

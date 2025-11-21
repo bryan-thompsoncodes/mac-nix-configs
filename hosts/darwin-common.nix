@@ -33,6 +33,9 @@
 
     # Nix development
     nix-direnv  # Fast, persistent Nix shell caching for direnv
+
+    # JavaScript toolchain
+    bun
   ];
 
   # Add Homebrew to system PATH
@@ -93,8 +96,8 @@
     # Common Homebrew casks
     casks = [
       "claude"
+      "codex"
       "cursor"
-      "font-meslo-lg-nerd-font"
       "obsidian"
       "rectangle-pro"
     ];

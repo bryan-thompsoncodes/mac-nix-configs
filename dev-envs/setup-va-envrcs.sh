@@ -27,13 +27,9 @@ fi
 BASE_DIR="$HOME/code/department-of-veterans-affairs"
 FLAKE_PATH="$HOME/code/nix-configs"
 
-# Map repositories to their flake dev shells
-declare -A REPO_ENVS=(
-    ["vets-website"]="vets-website"
-    ["next-build"]="next-build"
-    ["vets-api"]="vets-api"
-    ["component-library"]="component-library"
-)
+# Repositories and their matching dev shells (indexed arrays for Bash 3.2)
+REPOS=("vets-website" "next-build" "vets-api" "component-library")
+REPO_ENVS=("vets-website" "next-build" "vets-api" "component-library")
 
 # Arrays to track status
 declare -a REPOS_WITH_ENVRC=()
@@ -58,7 +54,9 @@ echo -e "${BLUE}Checking repositories and .envrc files...${NC}"
 echo ""
 
 # Check each repository
-for repo in "${!REPO_ENVS[@]}"; do
+for idx in "${!REPOS[@]}"; do
+    repo="${REPOS[$idx]}"
+    env_name="${REPO_ENVS[$idx]}"
     repo_path="$BASE_DIR/$repo"
     envrc_path="$repo_path/.envrc"
 
@@ -70,7 +68,7 @@ for repo in "${!REPO_ENVS[@]}"; do
         REPOS_WITH_ENVRC+=("$repo")
     else
         echo -e "  ${YELLOW}○${NC} $repo (.envrc missing)"
-        REPOS_TO_CREATE+=("$repo")
+        REPOS_TO_CREATE+=("$repo::$env_name")
     fi
 done
 
@@ -106,8 +104,10 @@ echo ""
 
 if [ ${#REPOS_TO_CREATE[@]} -gt 0 ]; then
     echo -e "${YELLOW}The following .envrc files will be created:${NC}"
-    for repo in "${REPOS_TO_CREATE[@]}"; do
-        echo -e "  - $repo → use flake $FLAKE_PATH#${REPO_ENVS[$repo]}"
+    for entry in "${REPOS_TO_CREATE[@]}"; do
+        repo="${entry%%::*}"
+        env_name="${entry##*::}"
+        echo -e "  - $repo → use flake $FLAKE_PATH#$env_name"
     done
     echo ""
 fi
@@ -131,10 +131,12 @@ echo ""
 CREATED_COUNT=0
 declare -a CREATED_REPOS=()
 
-for repo in "${REPOS_TO_CREATE[@]}"; do
+for entry in "${REPOS_TO_CREATE[@]}"; do
+    repo="${entry%%::*}"
+    env_name="${entry##*::}"
     repo_path="$BASE_DIR/$repo"
     envrc_path="$repo_path/.envrc"
-    flake_ref="$FLAKE_PATH#${REPO_ENVS[$repo]}"
+    flake_ref="$FLAKE_PATH#$env_name"
 
     echo -e "${BLUE}Creating .envrc for ${repo}...${NC}"
 
@@ -152,7 +154,7 @@ EOF
     if [ -f "$envrc_path" ]; then
         echo -e "${GREEN}✓ Created .envrc for ${repo}${NC}"
         CREATED_COUNT=$((CREATED_COUNT + 1))
-        CREATED_REPOS+=("$repo")
+        CREATED_REPOS+=("$repo::$env_name")
     else
         echo -e "${RED}✗ Failed to create .envrc for ${repo}${NC}"
     fi
@@ -192,7 +194,8 @@ if [ $CREATED_COUNT -gt 0 ]; then
 
         ALLOWED_COUNT=0
 
-        for repo in "${CREATED_REPOS[@]}"; do
+        for entry in "${CREATED_REPOS[@]}"; do
+            repo="${entry%%::*}"
             repo_path="$BASE_DIR/$repo"
             echo -e "${BLUE}Allowing direnv for ${repo}...${NC}"
 
@@ -212,7 +215,8 @@ if [ $CREATED_COUNT -gt 0 ]; then
         echo ""
         echo -e "You can manually allow direnv for each repository:"
         echo ""
-        for repo in "${CREATED_REPOS[@]}"; do
+        for entry in "${CREATED_REPOS[@]}"; do
+            repo="${entry%%::*}"
             echo -e "  ${BLUE}cd $BASE_DIR/$repo && direnv allow${NC}"
         done
         echo ""
