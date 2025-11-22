@@ -27,6 +27,7 @@
     # Additional casks for this host
     casks = [
       "notion"
+      "rectangle-pro"
       "slack"
       "zoom"
     ];

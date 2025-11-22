@@ -99,7 +99,6 @@
       "codex"
       "cursor"
       "obsidian"
-      "rectangle-pro"
     ];
   };
 }

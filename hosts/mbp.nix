@@ -18,6 +18,7 @@
       "bambu-studio"
       "block-goose"
       "discord"
+      "rectangle-pro"
       "steam"
       "zen"
     ];
