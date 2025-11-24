@@ -168,6 +168,19 @@
   # Enables force feedback, trigger rumble, and battery level reporting
   hardware.xone.enable = true;
 
+  # Disable DualShock controller touchpad from acting as a mouse
+  # Matches common device names for USB and Bluetooth connections
+  services.udev.extraRules = ''
+    # DualShock 4 touchpad (USB)
+    SUBSYSTEM=="input", ATTRS{name}=="Sony Interactive Entertainment Wireless Controller Touchpad", ENV{LIBINPUT_IGNORE_DEVICE}="1"
+    # DualShock 4 touchpad (Bluetooth)
+    SUBSYSTEM=="input", ATTRS{name}=="Wireless Controller Touchpad", ENV{LIBINPUT_IGNORE_DEVICE}="1"
+    # DualSense touchpad (USB)
+    SUBSYSTEM=="input", ATTRS{name}=="Sony Interactive Entertainment DualSense Wireless Controller Touchpad", ENV{LIBINPUT_IGNORE_DEVICE}="1"
+    # DualSense touchpad (Bluetooth)
+    SUBSYSTEM=="input", ATTRS{name}=="DualSense Wireless Controller Touchpad", ENV{LIBINPUT_IGNORE_DEVICE}="1"
+  '';
+
   # Power management configuration
   # Prevent automatic sleep to allow Steam streaming
   # Power button will hibernate the system
