@@ -1,8 +1,15 @@
 { pkgs }:
 
 let
-  # Ruby 3.3.6 for vets-api
-  ruby = pkgs.ruby_3_3;
+  # Override Ruby 3.3 to build version 3.3.6 specifically
+  # This only rebuilds Ruby, not the entire dependency tree
+  ruby = pkgs.ruby_3_3.overrideAttrs (oldAttrs: rec {
+    version = "3.3.6";
+    src = pkgs.fetchurl {
+      url = "https://cache.ruby-lang.org/pub/ruby/${pkgs.lib.versions.majorMinor version}/ruby-${version}.tar.gz";
+      hash = "sha256-jcSP/68nD4bxAZBT8o5R5NpMzjKjZ2CgYDqa7mfX/Y0=";
+    };
+  });
 
 in
 pkgs.mkShell {
