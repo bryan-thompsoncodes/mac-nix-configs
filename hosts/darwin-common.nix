@@ -98,6 +98,7 @@
       "claude"
       "codex"
       "cursor"
+      "cursor-cli"
       "obsidian"
     ];
   };
