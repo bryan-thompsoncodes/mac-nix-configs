@@ -37,8 +37,8 @@ in
 
     keepAlive = lib.mkOption {
       type = lib.types.str;
-      default = "0";
-      description = "How long to keep models loaded (0 = unload immediately after request)";
+      default = "5m";
+      description = "How long to keep models loaded (0 = unload immediately, -1 = forever)";
     };
   };
 
