@@ -174,11 +174,11 @@ in
 
   # SMB mount service for media
   # Note: Uses explicit credentials from ~/.smb-credentials
+  # Mounts on boot/wake only - no periodic polling that disrupts active streams
   launchd.user.agents.smb-mount = {
     serviceConfig = {
       ProgramArguments = [
         "${pkgs.writeShellScript "mount-smb-media" ''
-          # Log all operations
           exec 1>/tmp/smb-mount.log 2>/tmp/smb-mount.error.log
 
           MOUNT_POINT="$HOME/Media"
@@ -186,12 +186,9 @@ in
           MAX_RETRIES=30
           RETRY_DELAY=2
 
-           echo "=== SMB Mount Script Started at $(date) ==="
+          echo "=== SMB Mount Script Started at $(date) ==="
 
-           # Give network time to settle
-           sleep 5
-
-           # Load credentials
+          # Load credentials
           if [ ! -f "$CREDENTIALS_FILE" ]; then
             echo "ERROR: Credentials file not found at $CREDENTIALS_FILE"
             echo "Please create it with the following format:"
@@ -204,36 +201,27 @@ in
 
           source "$CREDENTIALS_FILE"
 
-          # Validate required variables
           if [ -z "$USERNAME" ] || [ -z "$PASSWORD" ] || [ -z "$SERVER" ] || [ -z "$SHARE" ]; then
             echo "ERROR: Missing required credentials in $CREDENTIALS_FILE"
             echo "Required: USERNAME, PASSWORD, SERVER, SHARE"
             exit 1
           fi
 
-          # Check if already mounted
-          if mount | grep -q "$MOUNT_POINT"; then
-            echo "Mount point $MOUNT_POINT is already mounted, checking if it's accessible..."
-            if ls "$MOUNT_POINT" >/dev/null 2>&1; then
-              echo "Mount is healthy, exiting successfully"
-              exit 0
-            else
-              echo "Mount is stale, unmounting..."
-              /sbin/umount -f "$MOUNT_POINT" 2>&1 || true
-            fi
-          fi
-
           # Ensure mount point exists
-          if [ ! -d "$MOUNT_POINT" ]; then
-            echo "Creating mount point $MOUNT_POINT..."
-            mkdir -p "$MOUNT_POINT"
+          mkdir -p "$MOUNT_POINT"
+
+          # Check if already mounted - use mount command only, don't probe the share
+          # Probing with ls during active streaming can cause timeouts and trigger remounts
+          if mount | grep -q " on $MOUNT_POINT "; then
+            echo "Already mounted at $MOUNT_POINT, skipping"
+            exit 0
           fi
 
           # Wait for network to be ready
           echo "Checking network connectivity to $SERVER..."
           for attempt in $(seq 1 $MAX_RETRIES); do
             if /sbin/ping -c 1 -t 2 "$SERVER" >/dev/null 2>&1; then
-              echo "Network is ready (attempt $attempt)"
+              echo "Network ready (attempt $attempt)"
               break
             fi
 
@@ -246,9 +234,9 @@ in
             sleep $RETRY_DELAY
           done
 
-          # Mount with explicit credentials
-          echo "Attempting to mount //$USERNAME@$SERVER/$SHARE to $MOUNT_POINT..."
-          if /sbin/mount_smbfs "//$USERNAME:$PASSWORD@$SERVER/$SHARE" "$MOUNT_POINT" 2>&1; then
+          # Mount with soft option to prevent hanging on temporary network issues
+          echo "Mounting //$USERNAME@$SERVER/$SHARE to $MOUNT_POINT..."
+          if /sbin/mount_smbfs -o soft "//$USERNAME:$PASSWORD@$SERVER/$SHARE" "$MOUNT_POINT" 2>&1; then
             echo "Mount successful at $(date)"
             exit 0
           else
@@ -258,9 +246,11 @@ in
           fi
         ''}"
       ];
-       RunAtLoad = true;
-       KeepAlive = false;
-       StartInterval = 300;
+      RunAtLoad = true;
+      KeepAlive = false;
+      # Re-run only when network configuration changes (wake from sleep, network reconnect)
+      # This replaces StartInterval polling which was disrupting active streams
+      WatchPaths = [ "/Library/Preferences/SystemConfiguration" ];
       StandardOutPath = "/tmp/smb-mount.log";
       StandardErrorPath = "/tmp/smb-mount.error.log";
     };
