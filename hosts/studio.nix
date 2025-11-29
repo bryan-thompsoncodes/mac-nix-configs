@@ -1,329 +1,34 @@
-{ pkgs, config, ... }:
+{ ... }:
 
-let
-  # Manual upgrade script for Open WebUI
-  upgrade-open-webui = pkgs.writeShellScriptBin "upgrade-open-webui" ''
-    #!/bin/bash
-    set -e
-
-    echo "=== Open WebUI Manual Upgrade ==="
-    echo ""
-
-    # Check if Python 3.11 is available
-    if [ ! -f /opt/homebrew/bin/pip3.11 ]; then
-      echo "ERROR: Python 3.11 not found at /opt/homebrew/bin/pip3.11"
-      echo "Please install it with: brew install python@3.11"
-      exit 1
-    fi
-
-    # Get current version
-    CURRENT_VERSION=$(/opt/homebrew/bin/pip3.11 show open-webui 2>/dev/null | grep Version | cut -d' ' -f2 || echo "not installed")
-    echo "Current version: $CURRENT_VERSION"
-    echo ""
-
-    # Upgrade
-    echo "Upgrading Open WebUI..."
-    /opt/homebrew/bin/pip3.11 install --user --upgrade open-webui
-    echo ""
-
-    # Get new version
-    NEW_VERSION=$(/opt/homebrew/bin/pip3.11 show open-webui 2>/dev/null | grep Version | cut -d' ' -f2 || echo "unknown")
-    echo "New version: $NEW_VERSION"
-    echo ""
-
-    if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
-      echo "✓ Upgraded from $CURRENT_VERSION to $NEW_VERSION"
-      echo ""
-      echo "Restarting Open WebUI service..."
-      launchctl kickstart -k "gui/$(id -u)/org.nixos.open-webui"
-      echo "✓ Service restarted"
-    else
-      echo "Already at latest version ($NEW_VERSION)"
-    fi
-
-    echo ""
-    echo "=== Upgrade Complete ==="
-    echo "Open WebUI should now be running version $NEW_VERSION"
-    echo "Access it at: http://localhost:8080"
-  '';
-  homeDir = "/Users/${config.system.primaryUser}";
-  pip3Path = "/opt/homebrew/bin/pip3.11";
-  openWebUIBinary = "${homeDir}/Library/Python/3.11/bin/open-webui";
-  # Use pip-installed Open WebUI so we can track upstream releases immediately.
-  # Homebrew lags behind, so this host intentionally bootstraps via pip3.11.
-  openWebUIRunner = pkgs.writeShellScriptBin "run-open-webui" ''
-    #!/bin/bash
-    set -euo pipefail
-
-    export HOME="${homeDir}"
-    export PATH="/opt/homebrew/bin:$PATH"
-
-    if [ ! -x "${pip3Path}" ]; then
-      echo "ERROR: pip3.11 not found at ${pip3Path}"
-      exit 1
-    fi
-
-    if [ ! -x "${openWebUIBinary}" ]; then
-      echo "Installing Open WebUI into $HOME/Library/Python/3.11"
-      "${pip3Path}" install --user --upgrade pip setuptools wheel
-      "${pip3Path}" install --user --upgrade open-webui
-    fi
-
-    mkdir -p "${homeDir}/.open-webui/data"
-
-    exec "${openWebUIBinary}" serve
-  '';
-  openWebUIUpdater = pkgs.writeShellScriptBin "update-open-webui" ''
-    #!/bin/bash
-    set -euo pipefail
-
-    export HOME="${homeDir}"
-    export PATH="/opt/homebrew/bin:$PATH"
-
-    if [ ! -x "${pip3Path}" ]; then
-      echo "ERROR: pip3.11 not found at ${pip3Path}"
-      exit 1
-    fi
-
-    echo "Checking for Open WebUI updates..."
-    "${pip3Path}" install --user --upgrade open-webui
-    launchctl kickstart -k "gui/$(id -u)/org.nixos.open-webui" >/dev/null 2>&1 || true
-  '';
-in
 {
   imports = [
     ./darwin-common.nix
+    ../modules/darwin/services/ollama.nix
+    ../modules/darwin/services/open-webui.nix
+    ../modules/darwin/services/monitoring.nix
+    ../modules/darwin/services/smb-mount.nix
   ];
 
-  # Host-specific packages
-  environment.systemPackages = [
-    upgrade-open-webui
-  ];
+  # === Enable Services ===
 
-  # Host-specific Homebrew configuration
+  services.ollama.enable = true;
+  services.open-webui.enable = true;
+  services.monitoring.enable = true;
+  services.smb-mount.enable = true;
+
+  # === Host-specific Homebrew ===
+
   homebrew = {
-    # Additional brews
     brews = [
       "cloudflared"
-      "node"  # Includes npm and npx for MCP extensions
+      "node" # Includes npm and npx for MCP extensions
       "ollama"
       "prometheus"
       "grafana"
-      "python@3.11"  # For Open WebUI
+      "python@3.11" # For Open WebUI
     ];
-    # Additional casks for this host
     casks = [
       "zen"
     ];
   };
-
-  # === AI/LLM Services ===
-
-  # Ollama service configuration
-  launchd.user.agents.ollama = {
-    serviceConfig = {
-      ProgramArguments = [ "/opt/homebrew/bin/ollama" "serve" ];
-      RunAtLoad = true;
-      KeepAlive = true;
-      StandardOutPath = "/tmp/ollama.log";
-      StandardErrorPath = "/tmp/ollama.error.log";
-      EnvironmentVariables = {
-        OLLAMA_HOST = "127.0.0.1:11434";
-        OLLAMA_ORIGINS = "*";
-        OLLAMA_FLASH_ATTENTION = "1";
-        OLLAMA_KV_CACHE_TYPE = "q8_0";
-        OLLAMA_KEEP_ALIVE = "0";
-      };
-    };
-  };
-
-  # Open WebUI service configuration (pip-based)
-  launchd.user.agents.open-webui = {
-    serviceConfig = {
-      ProgramArguments = [
-        "${openWebUIRunner}/bin/run-open-webui"
-      ];
-      RunAtLoad = true;
-      KeepAlive = true;
-      StandardOutPath = "/tmp/open-webui.log";
-      StandardErrorPath = "/tmp/open-webui.error.log";
-      WorkingDirectory = "${homeDir}/.open-webui";
-      EnvironmentVariables = {
-        PORT = "8080";
-        OLLAMA_BASE_URL = "http://127.0.0.1:11434";
-        WEBUI_AUTH = "true";
-        DATA_DIR = "${homeDir}/.open-webui/data";
-        HOME = homeDir;
-      };
-    };
-  };
-
-  launchd.user.agents.open-webui-updater = {
-    serviceConfig = {
-      ProgramArguments = [
-        "${openWebUIUpdater}/bin/update-open-webui"
-      ];
-      RunAtLoad = true;
-      StartInterval = 86400;
-      StandardOutPath = "/tmp/open-webui.updater.log";
-      StandardErrorPath = "/tmp/open-webui.updater.error.log";
-    };
-  };
-
-  # === Network Storage ===
-
-  # SMB mount service for media
-  # Note: Uses explicit credentials from ~/.smb-credentials
-  # Mounts on boot/wake only - no periodic polling that disrupts active streams
-  launchd.user.agents.smb-mount = {
-    serviceConfig = {
-      ProgramArguments = [
-        "${pkgs.writeShellScript "mount-smb-media" ''
-          exec 1>/tmp/smb-mount.log 2>/tmp/smb-mount.error.log
-
-          MOUNT_POINT="$HOME/Media"
-          CREDENTIALS_FILE="$HOME/.smb-credentials"
-          MAX_RETRIES=30
-          RETRY_DELAY=2
-
-          echo "=== SMB Mount Script Started at $(date) ==="
-
-          # Load credentials
-          if [ ! -f "$CREDENTIALS_FILE" ]; then
-            echo "ERROR: Credentials file not found at $CREDENTIALS_FILE"
-            echo "Please create it with the following format:"
-            echo "USERNAME=your_username"
-            echo "PASSWORD=your_password"
-            echo "SERVER=192.168.1.x"
-            echo "SHARE=media"
-            exit 1
-          fi
-
-          source "$CREDENTIALS_FILE"
-
-          if [ -z "$USERNAME" ] || [ -z "$PASSWORD" ] || [ -z "$SERVER" ] || [ -z "$SHARE" ]; then
-            echo "ERROR: Missing required credentials in $CREDENTIALS_FILE"
-            echo "Required: USERNAME, PASSWORD, SERVER, SHARE"
-            exit 1
-          fi
-
-          # Ensure mount point exists
-          mkdir -p "$MOUNT_POINT"
-
-          # Check if already mounted - use mount command only, don't probe the share
-          # Probing with ls during active streaming can cause timeouts and trigger remounts
-          if mount | grep -q " on $MOUNT_POINT "; then
-            echo "Already mounted at $MOUNT_POINT, skipping"
-            exit 0
-          fi
-
-          # Wait for network to be ready
-          echo "Checking network connectivity to $SERVER..."
-          for attempt in $(seq 1 $MAX_RETRIES); do
-            if /sbin/ping -c 1 -t 2 "$SERVER" >/dev/null 2>&1; then
-              echo "Network ready (attempt $attempt)"
-              break
-            fi
-
-            if [ $attempt -eq $MAX_RETRIES ]; then
-              echo "ERROR: Server $SERVER unreachable after $MAX_RETRIES attempts"
-              exit 1
-            fi
-
-            echo "Network not ready, waiting... (attempt $attempt of $MAX_RETRIES)"
-            sleep $RETRY_DELAY
-          done
-
-          # Mount with soft option to prevent hanging on temporary network issues
-          echo "Mounting //$USERNAME@$SERVER/$SHARE to $MOUNT_POINT..."
-          if /sbin/mount_smbfs -o soft "//$USERNAME:$PASSWORD@$SERVER/$SHARE" "$MOUNT_POINT" 2>&1; then
-            echo "Mount successful at $(date)"
-            exit 0
-          else
-            echo "Mount failed at $(date)"
-            echo "Check credentials in $CREDENTIALS_FILE and network connectivity"
-            exit 1
-          fi
-        ''}"
-      ];
-      RunAtLoad = true;
-      KeepAlive = false;
-      # Re-run only when network configuration changes (wake from sleep, network reconnect)
-      # This replaces StartInterval polling which was disrupting active streams
-      WatchPaths = [ "/Library/Preferences/SystemConfiguration" ];
-      StandardOutPath = "/tmp/smb-mount.log";
-      StandardErrorPath = "/tmp/smb-mount.error.log";
-    };
-  };
-
-  # === Monitoring Services ===
-
-  # Prometheus service configuration
-  launchd.user.agents.prometheus = {
-    serviceConfig = {
-      ProgramArguments = [
-        "/opt/homebrew/opt/prometheus/bin/prometheus"
-        "--config.file=/opt/homebrew/etc/prometheus.yml"
-        "--web.listen-address=0.0.0.0:9090"
-        "--storage.tsdb.path=/tmp/prometheus"
-      ];
-      RunAtLoad = true;
-      KeepAlive = true;
-      StandardOutPath = "/tmp/prometheus.log";
-      StandardErrorPath = "/tmp/prometheus.error.log";
-    };
-  };
-
-  # Grafana service configuration
-  launchd.user.agents.grafana = {
-    serviceConfig = {
-      ProgramArguments = [
-        "/opt/homebrew/opt/grafana/bin/grafana"
-        "server"
-        "--homepath=/opt/homebrew/opt/grafana/share/grafana"
-        "--config=/opt/homebrew/etc/grafana/grafana.ini"
-      ];
-      RunAtLoad = true;
-      KeepAlive = true;
-      StandardOutPath = "/tmp/grafana.log";
-      StandardErrorPath = "/tmp/grafana.error.log";
-      EnvironmentVariables = {
-        GF_SERVER_HTTP_ADDR = "0.0.0.0";
-        GF_SERVER_HTTP_PORT = "3000";
-      };
-    };
-  };
-
-  # === Activation Scripts ===
-
-  # Setup SMB mount directory
-  system.activationScripts.setup-smb-mount.text = ''
-    echo ""
-    echo "=== SMB Mount Setup ==="
-    echo "For automatic mounting to work, create ~/.smb-credentials with:"
-    echo "  USERNAME=username"
-    echo "  PASSWORD=your_password"
-    echo "  SERVER=192.168.1.x"
-    echo "  SHARE=media"
-    echo ""
-    echo "Then restart or run: launchctl kickstart -k gui/\$(id -u)/org.nixos.smb-mount"
-    echo "Check mount status: cat /tmp/smb-mount.log"
-    echo ""
-  '';
-
-  # Firewall setup for services
-  system.activationScripts.firewall.text = ''
-    # Open port 11434 for Ollama
-    /usr/libexec/ApplicationFirewall/socketfilterfw --add /opt/homebrew/bin/ollama
-    /usr/libexec/ApplicationFirewall/socketfilterfw --unblock /opt/homebrew/bin/ollama
-    # Open port 9090 for Prometheus
-    /usr/libexec/ApplicationFirewall/socketfilterfw --add /opt/homebrew/opt/prometheus/bin/prometheus
-    /usr/libexec/ApplicationFirewall/socketfilterfw --unblock /opt/homebrew/opt/prometheus/bin/prometheus
-    # Open port 3000 for Grafana
-    /usr/libexec/ApplicationFirewall/socketfilterfw --add /opt/homebrew/opt/grafana/bin/grafana
-    /usr/libexec/ApplicationFirewall/socketfilterfw --unblock /opt/homebrew/opt/grafana/bin/grafana
-    # Open port 8080 for Open WebUI
-    /usr/libexec/ApplicationFirewall/socketfilterfw --add /opt/homebrew/bin/python3.11
-    /usr/libexec/ApplicationFirewall/socketfilterfw --unblock /opt/homebrew/bin/python3.11
-  '';
 }
