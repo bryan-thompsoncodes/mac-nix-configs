@@ -52,5 +52,15 @@
 
     # Work around Nix store read-only issues
     export ESLINT_USE_FLAT_CONFIG=false
+
+    # npm/Yarn supply chain hardening - disable lifecycle scripts by default
+    # Re-enable selectively with: npm rebuild <package> or yarn rebuild
+    export npm_config_ignore_scripts=true
+
+    # Yarn Classic (1.x) - used by vets-website
+    export YARN_IGNORE_SCRIPTS=true
+
+    # Yarn Berry (2+) - used by next-build and component-library
+    export YARN_ENABLE_SCRIPTS=false
   '';
 }
