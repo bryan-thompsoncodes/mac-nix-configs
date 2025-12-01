@@ -27,11 +27,14 @@ pkgs.mkShell {
     pkgs.readline
     pkgs.zlib
     pkgs.libffi
+    pkgs.libxml2  # nokogiri
+    pkgs.libxslt  # nokogiri
 
     # Build tools for native extensions
     pkgs.pkg-config
     pkgs.gnumake
-    pkgs.gcc
+    # Use LLVM 18 - clang 21 has warnings that break Ruby 3.3 header compilation
+    pkgs.llvmPackages_18.clang
 
     # PostgreSQL client for vets-api
     pkgs.postgresql
@@ -57,6 +60,11 @@ pkgs.mkShell {
     # Ruby gem environment - store gems outside repo to avoid git tracking
     export GEM_HOME="$HOME/.local/share/gems/vets-api"
     export PATH="$GEM_HOME/bin:$PATH"
+
+    # Force using clang 18 instead of system clang 21
+    # Ruby 3.3 headers trigger -Wdefault-const-init-field-unsafe in clang 19+
+    export CC="${pkgs.llvmPackages_18.clang}/bin/clang"
+    export CXX="${pkgs.llvmPackages_18.clang}/bin/clang++"
 
     # PostgreSQL and Redis settings (safe defaults)
     export PGHOST="localhost"
