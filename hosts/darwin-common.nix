@@ -100,6 +100,7 @@
       "cursor"
       "cursor-cli"
       "obsidian"
+      "yaak"
     ];
   };
 }

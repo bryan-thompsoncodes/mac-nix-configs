@@ -272,6 +272,7 @@
 
     # Host-specific packages
     #bambu-studio
+    yaak
   ];
 
   # Fonts configuration
