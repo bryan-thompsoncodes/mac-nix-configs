@@ -79,6 +79,13 @@ pkgs.mkShell {
 
     ${lib.nodeEnvSetup}
 
+    # Run postinstall scripts for packages that need them (lifecycle scripts are disabled for security)
+    # Uses the shared run-postinstall.sh script, runs once after yarn install
+    POSTINSTALL_MARKER="node_modules/.postinstall-complete"
+    if [ -d "node_modules" ] && [ -f "script/run-postinstall.sh" ] && [ ! -f "''$POSTINSTALL_MARKER" ]; then
+      bash script/run-postinstall.sh && touch "''$POSTINSTALL_MARKER" || true
+    fi
+
     # Disable Cypress binary installation (handled separately)
     export CYPRESS_INSTALL_BINARY=0
 
