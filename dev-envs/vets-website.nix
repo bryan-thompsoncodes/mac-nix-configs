@@ -78,6 +78,7 @@ pkgs.mkShell {
     echo ""
 
     ${lib.nodeEnvSetup}
+    ${lib.yarnClassicSetup}
 
     # Run postinstall scripts for packages that need them (lifecycle scripts are disabled for security)
     # Uses the shared run-postinstall.sh script, runs once after yarn install

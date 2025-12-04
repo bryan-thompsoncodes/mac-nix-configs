@@ -18,6 +18,7 @@ pkgs.mkShell {
     yarn
     pkgs.git
     pkgs.docker
+    lib.yarnInstallWithScripts
    ] ++ lib.commonBuildTools ++ lib.browserTestingDeps;
 
   shellHook = ''
@@ -29,7 +30,7 @@ pkgs.mkShell {
     echo "Docker version: $(docker --version)"
      echo ""
      echo "📦 Next steps:"
-     echo "  1. Run 'yarn install' to install dependencies"
+     echo "  1. Run 'yarn-install-with-scripts' to install dependencies"
      echo "  2. Run 'yarn setup' to pull initial assets from vets-website"
      echo "  3. Run 'yarn redis' to start Redis in Docker"
      echo "  4. Run 'yarn dev' to start the dev server"
@@ -45,6 +46,7 @@ pkgs.mkShell {
     echo ""
 
     ${lib.nodeEnvSetup}
+    ${lib.yarnBerrySetup}
 
     # Playwright cache location (avoid Nix store issues)
     export PLAYWRIGHT_BROWSERS_PATH="''${HOME}/.cache/ms-playwright"

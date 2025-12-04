@@ -15,6 +15,7 @@ pkgs.mkShell {
     nodejs
     yarn
     pkgs.git
+    lib.yarnInstallWithScripts
   ] ++ lib.commonBuildTools ++ lib.browserTestingDeps;
 
   shellHook = ''
@@ -25,7 +26,7 @@ pkgs.mkShell {
     echo "Python version: $(python3 --version)"
     echo ""
     echo "📦 Next steps:"
-    echo "  1. Run 'yarn workspaces foreach install' to install dependencies"
+    echo "  1. Run 'yarn-install-with-scripts' to install dependencies"
     echo "  2. Run 'npm run dev' to build all packages and start Storybook"
     echo "     (This builds: web-components → react-components → core → storybook)"
     echo "  3. Run 'yarn test' in packages/web-components/ for unit tests"
@@ -37,6 +38,7 @@ pkgs.mkShell {
     echo ""
 
     ${lib.nodeEnvSetup}
+    ${lib.yarnBerrySetup}
 
     # Puppeteer cache location (avoid Nix store issues)
     export PUPPETEER_CACHE_DIR="''${HOME}/.cache/puppeteer"

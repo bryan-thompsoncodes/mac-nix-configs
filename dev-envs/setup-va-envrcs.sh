@@ -28,8 +28,8 @@ BASE_DIR="$HOME/code/department-of-veterans-affairs"
 FLAKE_PATH="$HOME/code/nix-configs"
 
 # Repositories and their matching dev shells (indexed arrays for Bash 3.2)
-REPOS=("vets-website" "next-build" "vets-api" "component-library")
-REPO_ENVS=("vets-website" "next-build" "vets-api" "component-library")
+REPOS=("vets-website" "next-build" "vets-api" "component-library" "content-build")
+REPO_ENVS=("vets-website" "next-build" "vets-api" "component-library" "content-build")
 
 # Arrays to track status
 declare -a REPOS_WITH_ENVRC=()

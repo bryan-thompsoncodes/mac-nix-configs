@@ -50,6 +50,7 @@
       "vets-api"
       "next-build"
       "component-library"
+      "content-build"
     ];
 
     # Helper to create dev shells for multiple systems
