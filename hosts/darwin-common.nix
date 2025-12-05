@@ -99,6 +99,7 @@
       "codex"
       "cursor"
       "cursor-cli"
+      "monal"
       "obsidian"
       "yaak"
     ];
