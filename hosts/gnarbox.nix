@@ -18,7 +18,10 @@
     extraOptions = ''
       experimental-features = nix-command flakes
     '';
-    settings.warn-dirty = false;
+    settings = {
+      warn-dirty = false;
+      download-buffer-size = "1073741824"; # 1GB buffer
+    };
   };
 
   # Nixpkgs configuration with overlays
@@ -44,8 +47,8 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # Use latest linux kernel
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  # Use LTS kernel (6.6) - linuxPackages_latest (6.18) breaks xpad-noone driver
+  boot.kernelPackages = pkgs.linuxPackages_6_6;
 
   # LUKS device configuration
   boot.initrd.luks.devices."luks-5b933bbd-d285-4b20-8b90-0d18947e77f6".device = "/dev/disk/by-uuid/5b933bbd-d285-4b20-8b90-0d18947e77f6";
@@ -170,10 +173,6 @@
     remotePlay.openFirewall = true;
     dedicatedServer.openFirewall = true;
   };
-
-  # Xbox Elite 2 controller support
-  # Enables force feedback, trigger rumble, and battery level reporting
-  hardware.xone.enable = true;
 
   # Disable DualShock controller touchpad from acting as a mouse
   # Matches common device names for USB and Bluetooth connections
