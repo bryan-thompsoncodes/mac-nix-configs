@@ -84,9 +84,11 @@
        "delta"
        "direnv"
        "eza"
+       "ffmpeg"
        "fzf"
        "gnupg"
        "jq"
+       "just"
        "lazydocker"
        "lazygit"
        "libpq"
@@ -103,12 +105,11 @@
 
     # Common Homebrew casks
     casks = [
-      "claude"
-      "codex"
       "cursor"
-      "cursor-cli"
       "monal"
       "obsidian"
+      "opencode-desktop"
+      "sol"
       "yaak"
     ];
   };
