@@ -17,6 +17,7 @@
     casks = [
       "bambu-studio"
       "block-goose"
+      "comet"
       "discord"
       "rectangle-pro"
       "steam"
