@@ -19,6 +19,7 @@
       "block-goose"
       "comet"
       "discord"
+      "monal"
       "rectangle-pro"
       "steam"
       "zen"
