@@ -110,6 +110,57 @@ cd ~/code/nix-configs
 ./dev-envs/setup-va-envrcs.sh  # Creates .envrc files for all VA repos
 ```
 
+## OpenCode & oh-my-opencode
+
+OpenCode is installed via Homebrew on all macOS systems. The oh-my-opencode plugin is automatically installed on rebuild (via activation script in darwin-common.nix).
+
+**Installation:**
+
+The oh-my-opencode plugin installs automatically on the first rebuild after adding the configuration. Run:
+
+```bash
+darwin-rebuild switch --flake '.#mbp'
+```
+
+**Authentication:**
+
+After installation, authenticate your AI providers:
+
+```bash
+opencode auth login
+```
+
+Follow the prompts to authenticate with:
+- Anthropic (Claude) - select "Claude Team"
+- OpenAI (ChatGPT) - select "ChatGPT Team"
+
+**Usage:**
+
+Start OpenCode:
+
+```bash
+opencode
+```
+
+The oh-my-opencode plugin provides:
+- **Sisyphus** - Main orchestrator agent with specialized subagents
+- **Multi-model support** - Claude, ChatGPT, Gemini
+- **Enhanced tools** - LSP, AST grep, background agents
+- **Productivity hooks** - Todo enforcement, comment checker, context management
+
+Include `ultrawork` in your prompts for maximum parallel agent performance.
+
+**Documentation:**
+- [OpenCode Docs](https://opencode.ai/docs)
+- [oh-my-opencode Repository](https://github.com/code-yeongyu/oh-my-opencode)
+
+**Auto-activate with direnv:**
+
+```bash
+cd ~/code/nix-configs
+./dev-envs/setup-va-envrcs.sh  # Creates .envrc files for all VA repos
+```
+
 ## Resources
 
 - [Nix Manual](https://nixos.org/manual/nix/stable/)

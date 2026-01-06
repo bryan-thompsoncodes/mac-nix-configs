@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, config, ... }:
 
 {
   # Disable nix-darwin's Nix management (using Determinate Nix)
@@ -43,6 +43,26 @@
 
   # Zsh configuration
   programs.zsh.enable = true;
+
+  # Activation script for oh-my-opencode plugin
+  system.activationScripts.oh-my-opencode.text = ''
+    # Run as the primary user to install oh-my-opencode plugin
+    echo "Checking oh-my-opencode installation..."
+    su - ${config.system.primaryUser} -c '
+      if ! grep -q "oh-my-opencode" ~/.config/opencode/opencode.json 2>/dev/null; then
+        echo "Installing oh-my-opencode plugin..."
+        # Install with all AI providers enabled
+        # Adjust flags: claude=yes (team), chatgpt=yes (team), gemini=no (free account)
+        ${pkgs.bun}/bin/bunx oh-my-opencode install --no-tui --claude=yes --chatgpt=yes --gemini=no || true
+        echo "oh-my-opencode installed!"
+        echo "Next steps:"
+        echo "  1. Authenticate with providers: opencode auth login"
+        echo "  2. Start OpenCode: opencode"
+      else
+        echo "oh-my-opencode already installed"
+      fi
+    '
+  '';
 
   # System state version
   system.stateVersion = 4;
