@@ -33,6 +33,7 @@
 
     # Nix development
     nix-direnv  # Fast, persistent Nix shell caching for direnv
+    nixd        # Nix language server
 
     # JavaScript toolchain
     bun
@@ -45,7 +46,7 @@
   programs.zsh.enable = true;
 
   # Activation script for oh-my-opencode plugin
-  system.activationScripts.oh-my-opencode.text = ''
+  system.activationScripts.extraActivation.text = ''
     # Run as the primary user to install oh-my-opencode plugin
     echo "Checking oh-my-opencode installation..."
     su - ${config.system.primaryUser} -c '
