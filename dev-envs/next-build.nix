@@ -18,6 +18,8 @@ pkgs.mkShell {
     yarn
     pkgs.git
     pkgs.docker
+    pkgs.nodePackages.typescript-language-server
+    pkgs.nodePackages.typescript
     lib.yarnInstallWithScripts
    ] ++ lib.commonBuildTools ++ lib.browserTestingDeps;
 
