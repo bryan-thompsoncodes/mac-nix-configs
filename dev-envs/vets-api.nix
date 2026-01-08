@@ -11,15 +11,17 @@ let
     };
   });
 
+  # Track Ruby store path to detect when gems need rebuilding
+  rubyStorePath = builtins.unsafeDiscardStringContext (builtins.toString ruby);
+
 in
 pkgs.mkShell {
   buildInputs = [
     ruby
     pkgs.git
 
-    # Ruby tools
-    pkgs.bundler
-    pkgs.foreman
+    # NOTE: bundler comes with Ruby 3.3, don't use pkgs.bundler (wrong Ruby)
+    # NOTE: foreman installed via `gem install foreman` to use correct Ruby
 
     # Ruby development dependencies
     pkgs.libyaml
@@ -50,16 +52,38 @@ pkgs.mkShell {
   ];
 
   shellHook = ''
+    # Set up environment variables FIRST (before any Ruby commands)
+    # Ruby gem environment - store gems outside repo to avoid git tracking
+    export GEM_HOME="$HOME/.local/share/gems/vets-api"
+    export PATH="$GEM_HOME/bin:$PATH"
+
+    # Track Ruby store path to detect native extension incompatibility
+    RUBY_MARKER="$GEM_HOME/.ruby-store-path"
+    CURRENT_RUBY="${rubyStorePath}"
+
+    # Check if gems were compiled against a different Ruby
+    if [ -f "$RUBY_MARKER" ]; then
+      PREV_RUBY=$(cat "$RUBY_MARKER")
+      if [ "$PREV_RUBY" != "$CURRENT_RUBY" ]; then
+        echo "⚠️  Ruby derivation changed!"
+        echo "   Previous: $PREV_RUBY"
+        echo "   Current:  $CURRENT_RUBY"
+        echo ""
+        echo "   Native gem extensions are incompatible. Run:"
+        echo "   rm -rf ~/.local/share/gems/vets-api && bundle install"
+        echo ""
+      fi
+    fi
+
+    # Save current Ruby path for future checks
+    mkdir -p "$GEM_HOME"
+    echo "$CURRENT_RUBY" > "$RUBY_MARKER"
+
     echo "🚀 vets-api development environment"
     echo ""
     echo "Ruby version: $(ruby --version)"
     echo "Bundler version: $(bundle --version)"
     echo ""
-
-    # Set up environment variables
-    # Ruby gem environment - store gems outside repo to avoid git tracking
-    export GEM_HOME="$HOME/.local/share/gems/vets-api"
-    export PATH="$GEM_HOME/bin:$PATH"
 
     # Force using clang 18 instead of system clang 21
     # Ruby 3.3 headers trigger -Wdefault-const-init-field-unsafe in clang 19+
@@ -78,7 +102,7 @@ pkgs.mkShell {
     # Helper aliases for common tasks
     alias start-redis='redis-server --daemonize yes --dir "$REDIS_DIR"'
     alias stop-redis='redis-cli shutdown'
-    alias start-vets-api='foreman start -m all=1,clamd=0,freshclam=0'
+    alias start-vets-api='bundle exec foreman start -m all=1,clamd=0,freshclam=0'
     alias setup-vets-api='bundle install && bundle exec rake db:setup'
 
     echo ""
