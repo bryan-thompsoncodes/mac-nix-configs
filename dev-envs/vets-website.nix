@@ -50,9 +50,11 @@ let
   # Yarn 1.x
   yarn = pkgs.yarn.override { inherit nodejs; };
 
-  # Additional build tool for vets-website (vips for image processing)
+  # Additional build tools for vets-website
   extraBuildTools = with pkgs; [
     vips
+    nodePackages.typescript-language-server
+    nodePackages.typescript
   ];
 
 in
