@@ -27,6 +27,7 @@
     # Additional casks for this host
     casks = [
       "claude-code"
+      "cursor"
       "notion"
       "rectangle-pro"
       "slack"

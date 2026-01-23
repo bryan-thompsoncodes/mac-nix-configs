@@ -260,7 +260,6 @@
 
     # Unstable packages
     unstable.claude-code
-    cursor  # Local package (v2.0.77)
 
     # AI coding assistants
     opencode
