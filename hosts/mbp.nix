@@ -16,7 +16,6 @@
     # Additional casks for this host
     casks = [
       "bambu-studio"
-      "comet"
       "discord"
       "monal"
       "rectangle-pro"
