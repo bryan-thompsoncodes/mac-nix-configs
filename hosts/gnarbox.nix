@@ -11,6 +11,9 @@
 {
   # Import the generated hardware configuration
   imports = [ ./hardware-configs/gnarbox.nix ];
+
+  # Enable nix-ld for running dynamically linked executables (needed for bunx, npm binaries, etc.)
+  programs.nix-ld.enable = true;
   
   # Nix settings
   nix = {
@@ -34,10 +37,7 @@
     config = {
       # Allow unfree packages
       allowUnfree = true;
-      # Permit insecure packages if needed
-      permittedInsecurePackages = [
-        "electron-25.9.0"
-      ];
+
     };
     # Platform
     hostPlatform = "x86_64-linux";
@@ -119,7 +119,6 @@
   services.printing.enable = true;
 
   # Enable sound with pipewire
-  services.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
@@ -223,6 +222,10 @@
     # CLI utilities - modern replacements
     ripgrep  # better grep
     fd       # better find
+    delta    # better git diffs
+    jq       # JSON processor
+    zoxide   # smarter cd
+    shellcheck  # shell script linter
 
     # CLI utilities - general
     wget
