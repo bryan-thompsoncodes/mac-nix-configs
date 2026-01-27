@@ -11,9 +11,16 @@
       url = "github:LnL7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    flake-parts = {
+      url = "github:hercules-ci/flake-parts";
+      inputs.nixpkgs-lib.follows = "nixpkgs";
+    };
+
+    import-tree.url = "github:vic/import-tree";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, nix-darwin } @ inputs:
+  outputs = { self, nixpkgs, nixpkgs-unstable, nix-darwin, flake-parts, import-tree } @ inputs:
   let
     inherit (self) outputs;
 
