@@ -26,11 +26,6 @@
       config.allowUnfree = true;
       overlays = [
         overlays.unstable
-        (final: prev: {
-          cursor = final.callPackage ./pkgs/cursor {
-            vscode-generic = "${final.path}/pkgs/applications/editors/vscode/generic.nix";
-          };
-        })
       ];
     };
 
@@ -66,13 +61,7 @@
     # Export overlays for use in NixOS configurations
     overlays = import ./overlays {inherit inputs;};
 
-    # Expose buildable packages
-    packages = {
-      x86_64-linux = rec {
-        cursor = (mkPkgs "x86_64-linux").cursor;
-        default = cursor;
-      };
-    };
+
 
     # macOS configurations using nix-darwin
     darwinConfigurations = {
@@ -96,11 +85,6 @@
           {
             nixpkgs.overlays = [
               overlays.unstable
-              (final: prev: {
-                cursor = final.callPackage ./pkgs/cursor {
-                  vscode-generic = "${final.path}/pkgs/applications/editors/vscode/generic.nix";
-                };
-              })
             ];
           }
         ];

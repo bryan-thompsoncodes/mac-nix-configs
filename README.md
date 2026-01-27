@@ -8,7 +8,7 @@ Declarative, reproducible system configuration using Nix for macOS (nix-darwin) 
 
 **Nix packages:** vim, neovim, git, gh, alacritty, ripgrep, fd, wget, tree, htop
 **Homebrew brews:** powerlevel10k, zsh-autosuggestions, zsh-syntax-highlighting, bat, eza, fzf, direnv, redis, libpq, gnupg, ca-certificates, stow, tmux, ncurses, pinentry-mac
-**Homebrew casks:** claude, cursor, obsidian, rectangle-pro
+**Homebrew casks:** claude, obsidian, rectangle-pro
 **Font:** MesloLGS Nerd Font
 
 ### mbp (personal)
@@ -28,7 +28,7 @@ Includes `darwin-common` plus:
 ### gnarbox (NixOS)
 
 **System:** GNOME desktop, systemd-boot, NetworkManager
-**Packages:** vim, neovim, git, gh, alacritty, ripgrep, fd, wget, tree, htop, bat, eza, fzf, direnv, stow, tmux, redis, libpq, gnupg, vlc, discord, obsidian, claude-code, cursor, firefox, steam (with proton-ge-bin)
+**Packages:** vim, neovim, git, gh, alacritty, ripgrep, fd, wget, tree, htop, bat, eza, fzf, direnv, stow, tmux, redis, libpq, gnupg, vlc, discord, obsidian, claude-code, firefox, steam (with proton-ge-bin)
 **Zsh plugins:** powerlevel10k, autosuggestions, syntax-highlighting
 **Font:** MesloLGS Nerd Font
 
