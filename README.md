@@ -2,28 +2,28 @@
 
 Declarative, reproducible system configuration using Nix for macOS (nix-darwin) and NixOS. Includes cross-platform development environments for VA projects.
 
+## Architecture
+
+This repository uses a modular architecture with configurations organized in `modules/`:
+
+- **`modules/hosts/`** - Host-specific configurations (mbp, a6mbp, gnarbox)
+- **`modules/common/`** - Shared configurations across all hosts
+- **`modules/dev-envs/`** - Development environment definitions for VA projects
+- **`flake.nix`** - Main entry point that composes modules into complete configurations
+
 ## Hosts
 
-### darwin-common (all macOS)
+### mbp (personal macOS)
 
-**Nix packages:** vim, neovim, git, gh, alacritty, ripgrep, fd, wget, tree, htop
-**Homebrew brews:** powerlevel10k, zsh-autosuggestions, zsh-syntax-highlighting, bat, eza, fzf, direnv, redis, libpq, gnupg, ca-certificates, stow, tmux, ncurses, pinentry-mac
-**Homebrew casks:** claude, obsidian, rectangle-pro
-**Font:** MesloLGS Nerd Font
+**Base:** darwin-common (shared macOS configuration)
+**Additional packages:** bambu-studio, steam
+**Location:** `modules/hosts/mbp.nix`
 
-### mbp (personal)
+### a6mbp (work macOS)
 
-Includes `darwin-common` plus:
-
-**Homebrew casks:** bambu-studio, steam
-
-### a6mbp (work)
-
-Includes `darwin-common` plus:
-
-**Nix packages:** awscli2, docker-compose
-**Homebrew brews:** ddev
-**Homebrew casks:** notion, slack, zoom
+**Base:** darwin-common (shared macOS configuration)
+**Additional packages:** awscli2, docker-compose, ddev, notion, slack, zoom
+**Location:** `modules/hosts/a6mbp.nix`
 
 ### gnarbox (NixOS)
 
@@ -31,6 +31,17 @@ Includes `darwin-common` plus:
 **Packages:** vim, neovim, git, gh, alacritty, ripgrep, fd, wget, tree, htop, bat, eza, fzf, direnv, stow, tmux, redis, libpq, gnupg, vlc, discord, obsidian, claude-code, firefox, steam (with proton-ge-bin)
 **Zsh plugins:** powerlevel10k, autosuggestions, syntax-highlighting
 **Font:** MesloLGS Nerd Font
+**Location:** `modules/hosts/gnarbox.nix`
+
+### Common (darwin-common)
+
+Shared configuration for all macOS hosts:
+
+**Nix packages:** vim, neovim, git, gh, alacritty, ripgrep, fd, wget, tree, htop
+**Homebrew brews:** powerlevel10k, zsh-autosuggestions, zsh-syntax-highlighting, bat, eza, fzf, direnv, redis, libpq, gnupg, ca-certificates, stow, tmux, ncurses, pinentry-mac
+**Homebrew casks:** claude, obsidian, rectangle-pro
+**Font:** MesloLGS Nerd Font
+**Location:** `modules/common/darwin-common.nix`
 
 ## Prerequisites
 
@@ -103,20 +114,15 @@ Cross-platform development environments for VA projects:
 nix develop '~/code/nix-configs#vets-website'
 ```
 
-**Auto-activate with direnv:**
+Development environment definitions are located in `modules/dev-envs/`.
 
-```bash
-cd ~/code/nix-configs
-./dev-envs/setup-va-envrcs.sh  # Creates .envrc files for all VA repos
-```
+## Claude Code & oh-my-Claude
 
-## OpenCode & oh-my-opencode
-
-OpenCode is installed via Homebrew on all macOS systems. The oh-my-opencode plugin is automatically installed on rebuild (via activation script in darwin-common.nix).
+Claude Code is installed via Homebrew on all macOS systems. The oh-my-Claude plugin is automatically installed on rebuild (via activation script in darwin-common.nix).
 
 **Installation:**
 
-The oh-my-opencode plugin installs automatically on the first rebuild after adding the configuration. Run:
+The oh-my-Claude plugin installs automatically on the first rebuild after adding the configuration. Run:
 
 ```bash
 darwin-rebuild switch --flake '.#mbp'
@@ -127,7 +133,7 @@ darwin-rebuild switch --flake '.#mbp'
 After installation, authenticate your AI providers:
 
 ```bash
-opencode auth login
+Claude auth login
 ```
 
 Follow the prompts to authenticate with:
@@ -136,13 +142,13 @@ Follow the prompts to authenticate with:
 
 **Usage:**
 
-Start OpenCode:
+Start Claude Code:
 
 ```bash
-opencode
+Claude
 ```
 
-The oh-my-opencode plugin provides:
+The oh-my-Claude plugin provides:
 - **Sisyphus** - Main orchestrator agent with specialized subagents
 - **Multi-model support** - Claude, ChatGPT, Gemini
 - **Enhanced tools** - LSP, AST grep, background agents
@@ -151,15 +157,8 @@ The oh-my-opencode plugin provides:
 Include `ultrawork` in your prompts for maximum parallel agent performance.
 
 **Documentation:**
-- [OpenCode Docs](https://opencode.ai/docs)
-- [oh-my-opencode Repository](https://github.com/code-yeongyu/oh-my-opencode)
-
-**Auto-activate with direnv:**
-
-```bash
-cd ~/code/nix-configs
-./dev-envs/setup-va-envrcs.sh  # Creates .envrc files for all VA repos
-```
+- [Claude Code Docs](https://Claude.ai/docs)
+- [oh-my-Claude Repository](https://github.com/code-yeongyu/oh-my-Claude)
 
 ## Resources
 
