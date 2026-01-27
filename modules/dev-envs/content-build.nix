@@ -3,7 +3,7 @@
 {
   perSystem = { pkgs, ... }: {
     devShells.content-build = let
-      lib = import ./lib.nix { inherit pkgs; };
+      lib = import ./_lib.nix { inherit pkgs; };
 
       # Node.js 14.15.0 as specified in .nvmrc and package.json engines
       # Cross-platform build supporting macOS (Intel/Apple Silicon) and Linux x64

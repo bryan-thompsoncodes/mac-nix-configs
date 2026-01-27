@@ -3,7 +3,7 @@
 {
   perSystem = { pkgs, ... }: {
     devShells.next-build = let
-      lib = import ./lib.nix { inherit pkgs; };
+      lib = import ./_lib.nix { inherit pkgs; };
 
       # Node.js 24 for next-build (closest to 24.1.0 specified in .nvmrc)
       nodejs = pkgs.nodejs_24;
