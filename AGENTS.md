@@ -9,7 +9,7 @@
 - **Format code:** `nixpkgs-fmt .`
 
 ### Development Environments
-Activate with: `nix develop '.#project-name'` (provides environments for vets-website, vets-api, next-build, component-library)
+Activate with: `nix develop '.#project-name'` (provides environments for vets-website, vets-api, next-build, component-library, content-build)
 
 ## Code Style Guidelines
 
@@ -73,7 +73,7 @@ oh-my-opencode configuration is managed in:
 - User config: `~/.config/opencode/oh-my-opencode.json`
 - Project config: `.opencode/oh-my-opencode.json`
 
-The plugin is installed automatically via darwin-common.nix activation script. Default settings use:
+The plugin is installed automatically via activation script in each host module. Default settings use:
 - Claude Team account enabled
 - ChatGPT Team account enabled
 - Gemini free account disabled

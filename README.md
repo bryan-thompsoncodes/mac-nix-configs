@@ -2,34 +2,57 @@
 
 Declarative, reproducible system configuration using Nix for macOS (nix-darwin) and NixOS. Includes cross-platform development environments for VA projects.
 
+## Architecture
+
+This repository uses a **dendritic (tree-like) modular architecture** with [flake-parts](https://github.com/hercules-ci/flake-parts) and [import-tree](https://github.com/vic/import-tree). Configurations are organized by **feature/capability** rather than by host:
+
+```
+modules/
+├── base/       # Core system: fonts, homebrew, nix-settings, zsh
+├── dev/        # Development: cli-tools, editors, git
+├── desktop/    # GUI: gnome, gaming, audio (NixOS)
+├── services/   # Daemons: ollama, open-webui, monitoring, smb-mount (Darwin)
+├── hosts/      # Host-specific: a6mbp, gnarbox, mbp, studio
+└── dev-envs/   # VA project environments
+```
+
+Each host imports and composes feature modules. See [modules/README.md](modules/README.md) for detailed structure.
+
 ## Hosts
 
-### darwin-common (all macOS)
+### mbp (personal macOS)
 
-**Nix packages:** vim, neovim, git, gh, alacritty, ripgrep, fd, wget, tree, htop
-**Homebrew brews:** powerlevel10k, zsh-autosuggestions, zsh-syntax-highlighting, bat, eza, fzf, direnv, redis, libpq, gnupg, ca-certificates, stow, tmux, ncurses, pinentry-mac
-**Homebrew casks:** claude, cursor, obsidian, rectangle-pro
-**Font:** MesloLGS Nerd Font
+**Features:** fonts, nix-settings, zsh, homebrew, editors, git, cli-tools
+**Host-specific:** bambu-studio, discord, monal, rectangle-pro, steam, zen, node, pandoc, texlive
+**Location:** `modules/hosts/mbp.nix`
 
-### mbp (personal)
+### a6mbp (work macOS)
 
-Includes `darwin-common` plus:
+**Features:** fonts, nix-settings, zsh, homebrew, editors, git, cli-tools
+**Host-specific:** awscli2, docker-compose, ddev, claude-code, docker-desktop, notion, rectangle-pro, slack, zoom
+**Location:** `modules/hosts/a6mbp.nix`
 
-**Homebrew casks:** bambu-studio, steam
+### studio (media server macOS)
 
-### a6mbp (work)
+**Features:** fonts, nix-settings, zsh, homebrew, editors, git, cli-tools
+**Services:** ollama, open-webui, monitoring, smb-mount
+**Host-specific:** cloudflared, prometheus, grafana, python@3.11, zen
+**Location:** `modules/hosts/studio.nix`
 
-Includes `darwin-common` plus:
+### gnarbox (NixOS desktop)
 
-**Nix packages:** awscli2, docker-compose
-**Homebrew brews:** ddev
-**Homebrew casks:** notion, slack, zoom
+**Features:** fonts, nix-settings, zsh, editors, git, cli-tools
+**Desktop:** gnome, gaming, audio
+**Host-specific:** redis, libpq, gnupg, vlc, discord, obsidian, claude-code, opencode, goose-cli, firefox, steam (with proton-ge-bin)
+**Location:** `modules/hosts/gnarbox.nix`
 
-### gnarbox (NixOS)
+### Shared Configuration
 
-**System:** GNOME desktop, systemd-boot, NetworkManager
-**Packages:** vim, neovim, git, gh, alacritty, ripgrep, fd, wget, tree, htop, bat, eza, fzf, direnv, stow, tmux, redis, libpq, gnupg, vlc, discord, obsidian, claude-code, cursor, firefox, steam (with proton-ge-bin)
-**Zsh plugins:** powerlevel10k, autosuggestions, syntax-highlighting
+All darwin hosts share these packages via feature modules:
+
+**Nix packages:** vim, neovim, alacritty, ripgrep, fd, wget, tree, htop, bat, eza, fzf, direnv, stow, tmux, ncurses, nixd, bun, delta, jq, zoxide, shellcheck
+**Homebrew brews:** powerlevel10k, zsh-autosuggestions, zsh-syntax-highlighting, opencode, lazygit, lazydocker, just, tlrc, ffmpeg, bind, redis, libpq, gnupg, ca-certificates, pinentry-mac
+**Homebrew casks:** claude, obsidian, opencode-desktop, sol, yaak
 **Font:** MesloLGS Nerd Font
 
 ## Prerequisites
@@ -56,7 +79,7 @@ Build and activate:
 **macOS:**
 
 ```bash
-darwin-rebuild switch --flake '.#mbp'  # or '.#a6mbp' for work machine
+darwin-rebuild switch --flake '.#mbp'  # or '.#a6mbp', '.#studio'
 ```
 
 **NixOS** (first build requires experimental features flag):
@@ -96,6 +119,7 @@ Cross-platform development environments for VA projects:
 - **vets-api:** Ruby 3.3.6, PostgreSQL, Redis, Kafka → [vets-api](https://github.com/department-of-veterans-affairs/vets-api)
 - **next-build:** Node 24, Yarn 3.x, Playwright → [next-build](https://github.com/department-of-veterans-affairs/next-build)
 - **component-library:** Node 22, Yarn 4.x, Puppeteer → [component-library](https://github.com/department-of-veterans-affairs/component-library)
+- **content-build:** Node 18, Yarn, Cypress → content-build
 
 **Activate manually:**
 
@@ -103,16 +127,11 @@ Cross-platform development environments for VA projects:
 nix develop '~/code/nix-configs#vets-website'
 ```
 
-**Auto-activate with direnv:**
-
-```bash
-cd ~/code/nix-configs
-./dev-envs/setup-va-envrcs.sh  # Creates .envrc files for all VA repos
-```
+Development environment definitions are located in `modules/dev-envs/`.
 
 ## OpenCode & oh-my-opencode
 
-OpenCode is installed via Homebrew on all macOS systems. The oh-my-opencode plugin is automatically installed on rebuild (via activation script in darwin-common.nix).
+OpenCode is installed via Homebrew on all darwin systems. The oh-my-opencode plugin is automatically installed on rebuild (via activation script in each host module).
 
 **Installation:**
 
@@ -151,21 +170,15 @@ The oh-my-opencode plugin provides:
 Include `ultrawork` in your prompts for maximum parallel agent performance.
 
 **Documentation:**
-- [OpenCode Docs](https://opencode.ai/docs)
+- [OpenCode Repository](https://github.com/opencode-ai/opencode)
 - [oh-my-opencode Repository](https://github.com/code-yeongyu/oh-my-opencode)
-
-**Auto-activate with direnv:**
-
-```bash
-cd ~/code/nix-configs
-./dev-envs/setup-va-envrcs.sh  # Creates .envrc files for all VA repos
-```
 
 ## Resources
 
 - [Nix Manual](https://nixos.org/manual/nix/stable/)
 - [nix-darwin Documentation](https://daiderd.com/nix-darwin/manual/)
 - [Nixpkgs Package Search](https://search.nixos.org/packages)
+- [flake-parts Documentation](https://flake.parts/)
 
 ## 3 gits, one repo
 
