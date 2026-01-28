@@ -180,6 +180,29 @@
       yaak
     ];
 
+    # === Activation Scripts ===
+
+    system.activationScripts.userSetup = ''
+      # Run as bryan for user-specific setup
+      su - bryan -c '
+        # --- Alacritty platform config ---
+        ALACRITTY_DIR="$HOME/.config/alacritty"
+        ALACRITTY_TOML="$ALACRITTY_DIR/alacritty.toml"
+        if [ -d "$ALACRITTY_DIR" ] && [ ! -L "$ALACRITTY_TOML" ]; then
+          echo "Setting up Alacritty config symlink..."
+          ln -sf alacritty-linux.toml "$ALACRITTY_TOML"
+          echo "  Linked alacritty.toml -> alacritty-linux.toml"
+        fi
+
+        # --- oh-my-opencode plugin ---
+        if ! grep -q "oh-my-opencode" ~/.config/opencode/opencode.json 2>/dev/null; then
+          echo "Installing oh-my-opencode plugin..."
+          ${pkgs.bun}/bin/bunx oh-my-opencode install --no-tui --claude=yes --chatgpt=no --gemini=no || true
+          echo "oh-my-opencode installed!"
+        fi
+      '
+    '';
+
     # === System State ===
 
     system.stateVersion = "25.05";
