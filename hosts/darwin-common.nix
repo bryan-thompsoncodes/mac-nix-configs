@@ -126,6 +126,7 @@
 
     # Common Homebrew casks
     casks = [
+      "claude"
       "obsidian"
       "opencode-desktop"
       "sol"
