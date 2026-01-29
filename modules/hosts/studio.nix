@@ -21,6 +21,8 @@
       open-webui
       monitoring
       smb-mount
+      syncthing
+      icloud-backup
     ];
 
     # === Core System Settings ===
@@ -46,6 +48,8 @@
     services.open-webui.enable = true;
     services.monitoring.enable = true;
     services.smb-mount.enable = true;
+    services.syncthing.enable = true;
+    services.icloud-backup.enable = true;
 
     # === Host-specific Homebrew Configuration ===
 
@@ -57,6 +61,7 @@
         "prometheus"
         "grafana"
         "python@3.11"  # For Open WebUI
+        "syncthing"
       ];
       casks = [
         "zen"

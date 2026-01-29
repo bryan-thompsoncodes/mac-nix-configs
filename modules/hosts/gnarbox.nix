@@ -144,6 +144,22 @@
       };
     };
 
+    # === Syncthing ===
+    # Uses NixOS native services.syncthing module
+
+    services.syncthing = {
+      enable = true;
+      user = "bryan";
+      group = "users";
+      dataDir = "/home/bryan";
+      configDir = "/home/bryan/.config/syncthing";
+      guiAddress = "127.0.0.1:8384";
+      openDefaultPorts = true;
+      # Manage devices/folders via Web UI, not declaratively
+      overrideDevices = false;
+      overrideFolders = false;
+    };
+
     # === Host-specific System Packages ===
 
     environment.systemPackages = with pkgs; [
