@@ -1,0 +1,21 @@
+# Example .envrc for direnv integration with nix-configs dev environments
+#
+# Copy this file to your project directory and rename to .envrc
+# Then run: direnv allow
+#
+# Available dev shells:
+#   vets-website      - Node 14.15.0, Yarn 1.x, Cypress
+#   vets-api          - Ruby 3.3.6, PostgreSQL, Redis, Kafka
+#   next-build        - Node 24, Yarn 3.x, Playwright
+#   component-library - Node 22, Yarn 4.x, Puppeteer
+#   content-build     - Node 14.15.0, Yarn 1.x, Cypress
+
+# Option 1: Use absolute path (works from any directory)
+use flake ~/code/nix-configs#vets-website
+
+# Option 2: Use relative path (if nix-configs is a sibling directory)
+# use flake ../nix-configs#vets-website
+
+# Option 3: Use nix-direnv for faster shell activation (recommended)
+# Requires nix-direnv to be installed (included in cli-tools module)
+# use flake ~/code/nix-configs#vets-website --impure
