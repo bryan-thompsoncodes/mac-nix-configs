@@ -14,6 +14,8 @@
       git
       cli-tools
       activation
+      # Service modules
+      syncthing
     ];
 
     # === Core System Settings ===
@@ -32,6 +34,10 @@
 
     # Add Homebrew to system PATH
     environment.systemPath = [ "/opt/homebrew/bin" ];
+
+    # === Enable Services ===
+
+    services.syncthing.enable = true;
 
     # === Host-specific System Packages ===
 
@@ -53,6 +59,7 @@
       brews = [
         # DDEV for va.gov-cms development
         "ddev/ddev/ddev"
+        "syncthing"
       ];
 
       # Additional casks for this host
