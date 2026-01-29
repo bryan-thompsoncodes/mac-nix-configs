@@ -3,51 +3,10 @@
 {
   perSystem = { pkgs, ... }: {
     devShells.content-build = let
-      lib = import ./_lib.nix { inherit pkgs; };
+      nodeLib = import ./_nodeLib.nix { inherit pkgs; };
 
-      # Node.js 14.15.0 as specified in .nvmrc and package.json engines
-      # Cross-platform build supporting macOS (Intel/Apple Silicon) and Linux x64
-      # Note: Node.js 14.15.0 has no native darwin-arm64 build (ARM64 support started in v16)
-      # On Apple Silicon, the x64 binary runs via Rosetta 2 translation
-      nodejs = pkgs.stdenv.mkDerivation rec {
-        pname = "nodejs";
-        version = "14.15.0";
-
-        # Determine the correct Node.js binary based on platform
-        src =
-          if pkgs.stdenv.isDarwin then
-            # macOS (both Intel and Apple Silicon use x64 binary)
-            pkgs.fetchurl {
-              url = "https://nodejs.org/dist/v${version}/node-v${version}-darwin-x64.tar.gz";
-              sha256 = "1fcwwv4rrdpj2gxk8dl5q8q7cka32c2k0204dmrr6jcz5w6zb28k";
-            }
-          else if pkgs.stdenv.isLinux && pkgs.stdenv.isx86_64 then
-            # Linux x64
-            pkgs.fetchurl {
-              url = "https://nodejs.org/dist/v${version}/node-v${version}-linux-x64.tar.xz";
-              sha256 = "06qgbldrmkqiv2dav2fs4z1x0b6ykk0gh997hf0frvd3z96bkrck";
-            }
-          else
-            throw "Unsupported platform: ${pkgs.stdenv.system}. This flake supports macOS and Linux x64 only.";
-
-        nativeBuildInputs = if pkgs.stdenv.isLinux then [ pkgs.autoPatchelfHook ] else [];
-        buildInputs = [ pkgs.makeWrapper ] ++ (if pkgs.stdenv.isLinux then [ pkgs.gcc.cc.lib ] else []);
-
-        dontStrip = true;
-        dontPatchELF = !pkgs.stdenv.isLinux;
-
-        installPhase = ''
-          mkdir -p $out
-          # Handle both .tar.gz (Darwin) and .tar.xz (Linux) formats
-          if [[ "$src" == *.tar.gz ]]; then
-            tar -xzf $src -C $out --strip-components=1
-          else
-            tar -xJf $src -C $out --strip-components=1
-          fi
-          # Make node_modules writable to avoid permission errors
-          chmod -R u+w $out/lib/node_modules || true
-        '';
-      };
+      # Node.js 14.15.0 from shared nodeLib
+      nodejs = nodeLib.nodejs14;
 
       # Yarn 1.x (Classic)
       yarn = pkgs.yarn.override { inherit nodejs; };
@@ -88,7 +47,7 @@
         pkgs.git
         yarnInstallWithScripts
         rebuildNodeLibcurl
-      ] ++ lib.commonBuildTools ++ lib.browserTestingDeps;
+      ] ++ nodeLib.commonBuildTools ++ nodeLib.browserTestingDeps;
 
       shellHook = ''
         echo "🚀 content-build development environment"
@@ -121,8 +80,8 @@
         echo "🔒 Security: Scripts are disabled by default. Use yarn-install-with-scripts when needed."
         echo ""
 
-        ${lib.nodeEnvSetup}
-        ${lib.yarnClassicSetup}
+        ${nodeLib.nodeEnvSetup}
+        ${nodeLib.yarnClassicSetup}
 
         # Note: Scripts are disabled by default for security (Shai Hulud protection)
         # Use 'yarn-install-with-scripts' to install with scripts enabled when needed
@@ -145,7 +104,7 @@
       '';
 
       # Set library path for Cypress and other native bindings
-      LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath lib.browserTestingDeps;
+      LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath nodeLib.browserTestingDeps;
     };
   };
 }
