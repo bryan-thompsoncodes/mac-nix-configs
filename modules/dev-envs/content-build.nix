@@ -3,10 +3,10 @@
 {
   perSystem = { pkgs, ... }: {
     devShells.content-build = let
-      lib = import ./_lib.nix { inherit pkgs; };
+      nodeLib = import ./_nodeLib.nix { inherit pkgs; };
 
-      # Node.js 14.15.0 from shared lib
-      nodejs = lib.nodejs14;
+      # Node.js 14.15.0 from shared nodeLib
+      nodejs = nodeLib.nodejs14;
 
       # Yarn 1.x (Classic)
       yarn = pkgs.yarn.override { inherit nodejs; };
@@ -47,7 +47,7 @@
         pkgs.git
         yarnInstallWithScripts
         rebuildNodeLibcurl
-      ] ++ lib.commonBuildTools ++ lib.browserTestingDeps;
+      ] ++ nodeLib.commonBuildTools ++ nodeLib.browserTestingDeps;
 
       shellHook = ''
         echo "🚀 content-build development environment"
@@ -80,8 +80,8 @@
         echo "🔒 Security: Scripts are disabled by default. Use yarn-install-with-scripts when needed."
         echo ""
 
-        ${lib.nodeEnvSetup}
-        ${lib.yarnClassicSetup}
+        ${nodeLib.nodeEnvSetup}
+        ${nodeLib.yarnClassicSetup}
 
         # Note: Scripts are disabled by default for security (Shai Hulud protection)
         # Use 'yarn-install-with-scripts' to install with scripts enabled when needed
@@ -104,7 +104,7 @@
       '';
 
       # Set library path for Cypress and other native bindings
-      LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath lib.browserTestingDeps;
+      LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath nodeLib.browserTestingDeps;
     };
   };
 }

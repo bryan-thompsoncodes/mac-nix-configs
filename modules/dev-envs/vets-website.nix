@@ -3,10 +3,10 @@
 {
   perSystem = { pkgs, ... }: {
     devShells.vets-website = let
-      lib = import ./_lib.nix { inherit pkgs; };
+      nodeLib = import ./_nodeLib.nix { inherit pkgs; };
 
-      # Node.js 14.15.0 from shared lib
-      nodejs = lib.nodejs14;
+      # Node.js 14.15.0 from shared nodeLib
+      nodejs = nodeLib.nodejs14;
 
       # Yarn 1.x
       yarn = pkgs.yarn.override { inherit nodejs; };
@@ -24,7 +24,7 @@
         nodejs
         yarn
         pkgs.git
-      ] ++ lib.commonBuildTools ++ extraBuildTools ++ lib.browserTestingDeps;
+      ] ++ nodeLib.commonBuildTools ++ extraBuildTools ++ nodeLib.browserTestingDeps;
 
       shellHook = ''
         echo "🚀 vets-website development environment"
@@ -40,8 +40,8 @@
         echo "  4. Run 'yarn cy:open' for Cypress tests"
         echo ""
 
-        ${lib.nodeEnvSetup}
-        ${lib.yarnClassicSetup}
+        ${nodeLib.nodeEnvSetup}
+        ${nodeLib.yarnClassicSetup}
 
         # Run postinstall scripts for packages that need them (lifecycle scripts are disabled for security)
         # Uses the shared run-postinstall.sh script, runs once after yarn install
@@ -59,7 +59,7 @@
       '';
 
       # Set library path for Cypress and other native bindings
-      LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath lib.browserTestingDeps;
+      LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath nodeLib.browserTestingDeps;
     };
   };
 }
