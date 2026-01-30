@@ -39,6 +39,7 @@
          "lazydocker"
          "lazygit"
          "libpq"
+         "marksman"
          "ncurses"
          "opencode"
          "pinentry-mac"
