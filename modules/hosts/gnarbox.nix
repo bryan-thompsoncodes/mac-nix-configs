@@ -47,6 +47,9 @@
       hostPlatform = "x86_64-linux";
       # Allow unfree packages (Discord, Steam, Obsidian, etc.)
       config.allowUnfree = true;
+      # Permit insecure OpenSSL 1.1 for sublime4 (upstream hasn't updated yet)
+      # Tracked: https://github.com/sublimehq/sublime_text/issues/5984
+      config.permittedInsecurePackages = [ "openssl-1.1.1w" ];
     };
 
     # === Boot Configuration ===
@@ -188,7 +191,6 @@
 
       # AI coding assistants
       opencode
-      goose-cli
 
       # GNOME extensions
       gnomeExtensions.hide-top-bar
