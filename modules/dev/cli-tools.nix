@@ -35,6 +35,7 @@ let
     jq          # JSON processor
     zoxide      # smarter cd
     shellcheck  # shell script linter
+    tea         # Gitea/Forgejo CLI (gh alternative)
   ];
 in
 {
