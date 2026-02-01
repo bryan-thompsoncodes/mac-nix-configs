@@ -21,6 +21,38 @@ Activate with: `nix develop '.#project-name'` (provides environments for vets-we
 - **Comments:** Use `#` for single-line comments, document complex logic
 - **Structure:** Keep flake.nix clean, use separate .nix files for complex configurations
 
+## Documentation Maintenance
+
+**IMPORTANT:** Keep README.md in sync with configuration changes.
+
+### When to Update README.md
+
+Update the README when modifying:
+
+| Change Type | README Section to Update |
+|-------------|--------------------------|
+| Add/remove homebrew brew or cask in `modules/base/homebrew.nix` | "Shared Configuration" → Homebrew brews/casks |
+| Add/remove service module in `modules/services/` | Architecture tree + relevant host sections |
+| Modify host-specific packages in `modules/hosts/*.nix` | Host section (mbp, a6mbp, studio, gnarbox) |
+| Change dev environment versions in `modules/dev-envs/*.nix` | "Development Environments" section |
+| Add new host or module | Architecture tree + new host section |
+
+### README Sections Reference
+
+- **Lines 10-17:** Module architecture tree
+- **Lines 23-50:** Host configurations (features, services, host-specific packages)
+- **Lines 52-59:** Shared configuration (Nix packages, Homebrew brews/casks)
+- **Lines 121-125:** Development environment versions
+
+### Verification Command
+
+After making changes, verify README accuracy:
+```bash
+# Check that README matches actual config
+grep -E "casks|brews" modules/base/homebrew.nix
+grep -E "services\." modules/hosts/*.nix
+```
+
 ## OpenCode with oh-my-opencode
 
 This repository uses OpenCode with the oh-my-opencode plugin for enhanced AI agent capabilities.
@@ -78,7 +110,7 @@ The plugin is installed automatically via activation script in each host module.
 - ChatGPT Team account enabled
 - Gemini free account disabled
 
-### Hooks & Hooks
+### Hooks
 
 Available productivity hooks (all enabled by default):
 - `todo-continuation-enforcer` - Forces agents to finish all todos

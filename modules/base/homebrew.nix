@@ -1,9 +1,9 @@
 # Base module: Homebrew configuration
 # Provides Homebrew package management for darwin systems
 # Note: Homebrew is darwin-only, no nixos aspect needed
-{ inputs, ... }:
+{ ... }:
 {
-  flake.modules.darwin.homebrew = { pkgs, ... }: {
+  flake.modules.darwin.homebrew = { ... }: {
     homebrew = {
       enable = true;
 
@@ -53,7 +53,6 @@
 
       # Common Homebrew casks
       casks = [
-        "claude"
         "obsidian"
         "opencode-desktop"
         "sol"

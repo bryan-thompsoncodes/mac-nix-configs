@@ -5,7 +5,7 @@
 # Host-specific: Media server tools (cloudflared, ffmpeg, etc.)
 { inputs, ... }:
 {
-  flake.modules.darwin.studio = { pkgs, config, ... }: {
+  flake.modules.darwin.studio = { ... }: {
     imports = with inputs.self.modules.darwin; [
       # Base features
       fonts

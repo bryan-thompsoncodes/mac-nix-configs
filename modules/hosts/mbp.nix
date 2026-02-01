@@ -4,7 +4,7 @@
 # Host-specific: Personal apps (Bambu Studio, Discord, Steam, etc.)
 { inputs, ... }:
 {
-  flake.modules.darwin.mbp = { pkgs, config, ... }: {
+  flake.modules.darwin.mbp = { ... }: {
     imports = with inputs.self.modules.darwin; [
       fonts
       nix-settings

@@ -3,7 +3,7 @@
 {
   perSystem = { pkgs, ... }: {
     devShells.component-library = let
-      lib = import ./_lib.nix { inherit pkgs; };
+      lib = import ./_nodeLib.nix { inherit pkgs; };
 
       # Node.js 22 for component-library (closest to 22.17.0 specified in .nvmrc)
       nodejs = pkgs.nodejs_22;

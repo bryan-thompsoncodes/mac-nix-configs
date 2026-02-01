@@ -4,7 +4,7 @@
 # Host-specific: Work tools (AWS, Docker, DDEV, Slack, Zoom, etc.)
 { inputs, ... }:
 {
-  flake.modules.darwin.a6mbp = { pkgs, config, ... }: {
+  flake.modules.darwin.a6mbp = { pkgs, ... }: {
     imports = with inputs.self.modules.darwin; [
       fonts
       nix-settings
@@ -64,6 +64,7 @@
 
       # Additional casks for this host
       casks = [
+        "claude"
         "claude-code"
         "docker-desktop"
         "notion"

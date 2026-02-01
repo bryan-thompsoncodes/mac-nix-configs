@@ -11,7 +11,7 @@ modules/
 ├── base/       # Core system: fonts, homebrew, nix-settings, zsh
 ├── dev/        # Development: cli-tools, editors, git
 ├── desktop/    # GUI: gnome, gaming, audio (NixOS)
-├── services/   # Daemons: ollama, open-webui, monitoring, smb-mount (Darwin)
+├── services/   # Daemons: ollama, open-webui, monitoring, smb-mount, syncthing, icloud-backup, openclaw (Darwin)
 ├── hosts/      # Host-specific: a6mbp, gnarbox, mbp, studio
 └── dev-envs/   # VA project environments
 ```
@@ -23,36 +23,39 @@ Each host imports and composes feature modules. See [modules/README.md](modules/
 ### mbp (personal macOS)
 
 **Features:** fonts, nix-settings, zsh, homebrew, editors, git, cli-tools
-**Host-specific:** bambu-studio, discord, monal, rectangle-pro, steam, zen, node, pandoc, texlive
+**Services:** syncthing
+**Host-specific:** bambu-studio, discord, monal, rectangle-pro, steam, zen, node, pandoc, texlive, syncthing
 **Location:** `modules/hosts/mbp.nix`
 
 ### a6mbp (work macOS)
 
 **Features:** fonts, nix-settings, zsh, homebrew, editors, git, cli-tools
-**Host-specific:** awscli2, docker-compose, ddev, claude-code, docker-desktop, notion, rectangle-pro, slack, zoom
+**Services:** syncthing
+**Host-specific:** awscli2, docker-compose, ddev, claude, claude-code, docker-desktop, notion, rectangle-pro, slack, syncthing, zoom
 **Location:** `modules/hosts/a6mbp.nix`
 
 ### studio (media server macOS)
 
 **Features:** fonts, nix-settings, zsh, homebrew, editors, git, cli-tools
-**Services:** ollama, open-webui, monitoring, smb-mount
-**Host-specific:** cloudflared, prometheus, grafana, python@3.11, zen
+**Services:** ollama, open-webui, monitoring, smb-mount, syncthing, icloud-backup, openclaw
+**Host-specific:** cloudflared, node, ollama, podman, prometheus, grafana, python@3.11, syncthing, zen
 **Location:** `modules/hosts/studio.nix`
 
 ### gnarbox (NixOS desktop)
 
 **Features:** fonts, nix-settings, zsh, editors, git, cli-tools
 **Desktop:** gnome, gaming, audio
-**Host-specific:** redis, libpq, gnupg, vlc, discord, obsidian, claude-code, opencode, goose-cli, firefox, steam (with proton-ge-bin)
+**Services:** syncthing
+**Host-specific:** redis, libpq, gnupg, vlc, discord, obsidian, claude-code, opencode, yaak, firefox, steam (with proton-ge-bin)
 **Location:** `modules/hosts/gnarbox.nix`
 
 ### Shared Configuration
 
 All darwin hosts share these packages via feature modules:
 
-**Nix packages:** vim, neovim, alacritty, ripgrep, fd, wget, tree, htop, bat, eza, fzf, direnv, stow, tmux, ncurses, nixd, bun, delta, jq, zoxide, shellcheck
-**Homebrew brews:** powerlevel10k, zsh-autosuggestions, zsh-syntax-highlighting, opencode, lazygit, lazydocker, just, tlrc, ffmpeg, bind, redis, libpq, gnupg, ca-certificates, pinentry-mac
-**Homebrew casks:** claude, obsidian, opencode-desktop, sol, yaak
+**Nix packages:** vim, neovim, alacritty, ripgrep, fd, wget, tree, htop, bat, eza, fzf, direnv, nix-direnv, stow, tmux, ncurses, nixd, bun, delta, jq, zoxide, shellcheck, tea
+**Homebrew brews:** powerlevel10k, zsh-autosuggestions, zsh-syntax-highlighting, bat, bind, ca-certificates, delta, direnv, eza, ffmpeg, fzf, gnupg, jq, just, lazydocker, lazygit, libpq, marksman, ncurses, opencode, pinentry-mac, redis, shellcheck, stow, tlrc, tmux, zoxide
+**Homebrew casks:** obsidian, opencode-desktop, sol, sublime-text, yaak
 **Font:** MesloLGS Nerd Font
 
 ## Prerequisites
@@ -119,7 +122,7 @@ Cross-platform development environments for VA projects:
 - **vets-api:** Ruby 3.3.6, PostgreSQL, Redis, Kafka → [vets-api](https://github.com/department-of-veterans-affairs/vets-api)
 - **next-build:** Node 24, Yarn 3.x, Playwright → [next-build](https://github.com/department-of-veterans-affairs/next-build)
 - **component-library:** Node 22, Yarn 4.x, Puppeteer → [component-library](https://github.com/department-of-veterans-affairs/component-library)
-- **content-build:** Node 18, Yarn, Cypress → content-build
+- **content-build:** Node 14.15.0, Yarn 1.x, Cypress → content-build
 
 **Activate manually:**
 
