@@ -11,7 +11,7 @@
     environment.systemPackages = with pkgs; [
       vim
       neovim
-      sublime4
+      sublime
     ];
   };
 }
