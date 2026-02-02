@@ -1,7 +1,7 @@
 # Host configuration: studio (Media Server Mac)
 #
 # Features: fonts, nix-settings, zsh, homebrew, editors, git, cli-tools
-# Services: ollama, open-webui, monitoring, smb-mount, openclaw
+# Services: ollama, open-webui, monitoring, smb-mount, syncthing, icloud-backup
 # Host-specific: Media server tools (cloudflared, ffmpeg, etc.)
 { inputs, ... }:
 {
@@ -23,7 +23,6 @@
       smb-mount
       syncthing
       icloud-backup
-      openclaw
     ];
 
     # === Core System Settings ===
@@ -51,7 +50,6 @@
     services.smb-mount.enable = true;
     services.syncthing.enable = true;
     services.icloud-backup.enable = true;
-    services.openclaw.enable = true;
 
     # === Host-specific Homebrew Configuration ===
 
@@ -60,7 +58,6 @@
         "cloudflared"
         "node"         # Includes npm and npx for MCP extensions
         "ollama"
-        "podman"       # FOSS container runtime for OpenClaw
         "prometheus"
         "grafana"
         "python@3.11"  # For Open WebUI
