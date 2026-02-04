@@ -4,15 +4,15 @@
   perSystem = { pkgs, ... }: {
     devShells.vets-api = let
       # Override Ruby 3.3 to build version 3.3.6 specifically
-      # Add libyaml to buildInputs to ensure psych compiles with YAML support
+      # Add libyaml and openssl to buildInputs to ensure psych and openssl compile correctly
       ruby = pkgs.ruby_3_3.overrideAttrs (oldAttrs: rec {
         version = "3.3.6";
         src = pkgs.fetchurl {
           url = "https://cache.ruby-lang.org/pub/ruby/${pkgs.lib.versions.majorMinor version}/ruby-${version}.tar.gz";
           hash = "sha256-jcSP/68nD4bxAZBT8o5R5NpMzjKjZ2CgYDqa7mfX/Y0=";
         };
-        # Ensure libyaml is available during Ruby compilation for psych
-        buildInputs = (oldAttrs.buildInputs or []) ++ [ pkgs.libyaml ];
+        # Ensure libyaml and openssl are available during Ruby compilation
+        buildInputs = (oldAttrs.buildInputs or []) ++ [ pkgs.libyaml pkgs.openssl ];
       });
 
       # Track Ruby store path to detect when gems need rebuilding
