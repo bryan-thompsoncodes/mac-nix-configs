@@ -33,12 +33,19 @@
         description = "KV cache quantization type";
       };
 
-      keepAlive = lib.mkOption {
-        type = lib.types.str;
-        default = "5m";
-        description = "How long to keep models loaded (0 = unload immediately, -1 = forever)";
-      };
-    };
+       keepAlive = lib.mkOption {
+         type = lib.types.str;
+         default = "5m";
+         description = "How long to keep models loaded (0 = unload immediately, -1 = forever)";
+       };
+
+       models = lib.mkOption {
+         type = lib.types.listOf lib.types.str;
+         default = [];
+         description = "Models to pull automatically on system activation";
+         example = [ "deepseek-r1:70b" "qwen3-coder:30b" ];
+       };
+     };
 
     config = let
       cfg = config.services.ollama;
@@ -61,12 +68,25 @@
         };
       };
 
-      # Firewall rules for Ollama
-      system.activationScripts.ollama-firewall.text = ''
-        /usr/libexec/ApplicationFirewall/socketfilterfw --add /opt/homebrew/bin/ollama >/dev/null 2>&1 || true
-        /usr/libexec/ApplicationFirewall/socketfilterfw --unblock /opt/homebrew/bin/ollama >/dev/null 2>&1 || true
-      '';
-    };
+       # Firewall rules for Ollama
+       system.activationScripts.ollama-firewall.text = ''
+         /usr/libexec/ApplicationFirewall/socketfilterfw --add /opt/homebrew/bin/ollama >/dev/null 2>&1 || true
+         /usr/libexec/ApplicationFirewall/socketfilterfw --unblock /opt/homebrew/bin/ollama >/dev/null 2>&1 || true
+       '';
+
+       # Pull models on activation
+       system.activationScripts.ollama-models.text = lib.mkIf (cfg.models != []) ''
+         echo "Pulling Ollama models..."
+         for model in ${lib.concatStringsSep " " cfg.models}; do
+           if ! /opt/homebrew/bin/ollama list 2>/dev/null | grep -q "^$model"; then
+             echo "Pulling $model..."
+             /opt/homebrew/bin/ollama pull "$model" || echo "Warning: Failed to pull $model"
+           else
+             echo "$model already available"
+           fi
+         done
+       '';
+     };
   };
 
   # NixOS aspect - stub for future implementation

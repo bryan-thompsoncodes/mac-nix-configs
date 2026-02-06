@@ -45,6 +45,13 @@
     # === Enable Services ===
 
     services.ollama.enable = true;
+    services.ollama.models = [
+      "deepseek-r1:70b"    # Muse - primary thinking partner (43GB)
+      "deepseek-r1:32b"    # Demiurge - agent craftsman (20GB)
+      "qwen3-coder:30b"    # Sage - external research (19GB)
+      "devstral:24b"       # Scribe - note persistence (14GB)
+      "qwen2.5-coder:7b"   # Pyre, Archivist - fast operations (5GB)
+    ];
     services.open-webui.enable = true;
     services.monitoring.enable = true;
     services.smb-mount.enable = true;
