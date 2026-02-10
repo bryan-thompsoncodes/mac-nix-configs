@@ -45,6 +45,51 @@
     '';
   };
 
+  # Node.js 22.22.0 LTS for vets-website
+  # Cross-platform build supporting macOS (Intel/Apple Silicon) and Linux x64
+  nodejs22 = pkgs.stdenv.mkDerivation rec {
+    pname = "nodejs";
+    version = "22.22.0";
+
+    src =
+      if pkgs.stdenv.isDarwin then
+        if pkgs.stdenv.isAarch64 then
+          pkgs.fetchurl {
+            url = "https://nodejs.org/dist/v${version}/node-v${version}-darwin-arm64.tar.gz";
+            sha256 = "sha256-XtTbD88er4TZGtEkYmMdc79FdsE3fhktIi5IAmqQJkA=";
+          }
+        else
+          pkgs.fetchurl {
+            url = "https://nodejs.org/dist/v${version}/node-v${version}-darwin-x64.tar.gz";
+            sha256 = "sha256-/MrJeFHJgAJ6WXohXZ+ZNKv8CAbw88YVS0kbBD22Ujo=";
+          }
+      else if pkgs.stdenv.isLinux && pkgs.stdenv.isx86_64 then
+        pkgs.fetchurl {
+          url = "https://nodejs.org/dist/v${version}/node-v${version}-linux-x64.tar.xz";
+          sha256 = "sha256-Sm2hDFbRkXxcVE5N2BxdLoCjuCXE3u+1FYgBaLq/KHw=";
+        }
+      else
+        throw "Unsupported platform: ${pkgs.stdenv.system}. This flake supports macOS and Linux x64 only.";
+
+    nativeBuildInputs = if pkgs.stdenv.isLinux then [ pkgs.autoPatchelfHook ] else [];
+    buildInputs = [ pkgs.makeWrapper ] ++ (if pkgs.stdenv.isLinux then [ pkgs.gcc.cc.lib ] else []);
+
+    dontStrip = true;
+    dontPatchELF = !pkgs.stdenv.isLinux;
+
+    installPhase = ''
+      mkdir -p $out
+      # Handle both .tar.gz (Darwin) and .tar.xz (Linux) formats
+      if [[ "$src" == *.tar.gz ]]; then
+        tar -xzf $src -C $out --strip-components=1
+      else
+        tar -xJf $src -C $out --strip-components=1
+      fi
+      # Make node_modules writable to avoid permission errors
+      chmod -R u+w $out/lib/node_modules || true
+    '';
+  };
+
   # Common build tools needed for native Node.js modules
   commonBuildTools = with pkgs; [
     python3

@@ -5,8 +5,8 @@
     devShells.vets-website = let
       nodeLib = import ./_nodeLib.nix { inherit pkgs; };
 
-      # Node.js 14.15.0 from shared nodeLib
-      nodejs = nodeLib.nodejs14;
+      # Node.js 22.22.0 from shared nodeLib
+      nodejs = nodeLib.nodejs22;
 
       # Yarn 1.x
       yarn = pkgs.yarn.override { inherit nodejs; };
