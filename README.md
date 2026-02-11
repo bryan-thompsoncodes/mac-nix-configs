@@ -54,7 +54,7 @@ Each host imports and composes feature modules. See [modules/README.md](modules/
 All darwin hosts share these packages via feature modules:
 
 **Nix packages:** vim, neovim, alacritty, ripgrep, fd, wget, tree, htop, bat, eza, fzf, direnv, nix-direnv, stow, tmux, ncurses, nixd, bun, delta, jq, zoxide, shellcheck, tea
-**Homebrew brews:** powerlevel10k, zsh-autosuggestions, zsh-syntax-highlighting, bat, bind, ca-certificates, delta, direnv, eza, ffmpeg, fzf, gnupg, jq, just, lazydocker, lazygit, libpq, marksman, ncurses, opencode, pinentry-mac, redis, shellcheck, stow, tlrc, tmux, zoxide
+**Homebrew brews:** powerlevel10k, zsh-autosuggestions, zsh-syntax-highlighting, bat, bind, ca-certificates, delta, direnv, eza, ffmpeg, fzf, gnupg, jq, just, lazydocker, lazygit, libpq, marksman, ncurses, opencode, pinentry-mac, pipx, poetry, python, redis, shellcheck, stow, tlrc, tmux, zoxide
 **Homebrew casks:** obsidian, opencode-desktop, sol, sublime-text, yaak
 **Font:** MesloLGS Nerd Font
 

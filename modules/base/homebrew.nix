@@ -43,6 +43,7 @@
          "ncurses"
          "opencode"
          "pinentry-mac"
+         "pipx"
          "poetry"
          "python"
          "redis"
