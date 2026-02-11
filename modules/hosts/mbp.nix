@@ -44,6 +44,7 @@
     homebrew = {
       # Additional brews
       brews = [
+        "exercism"
         "node"     # Includes npm and npx for MCP extensions
         "pandoc"   # For converting documents
         "texlive"  # For converting MD to PDF

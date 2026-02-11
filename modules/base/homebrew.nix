@@ -43,6 +43,8 @@
          "ncurses"
          "opencode"
          "pinentry-mac"
+         "poetry"
+         "python"
          "redis"
          "shellcheck"
          "stow"

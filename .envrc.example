@@ -9,6 +9,7 @@
 #   next-build        - Node 24, Yarn 3.x, Playwright
 #   component-library - Node 22, Yarn 4.x, Puppeteer
 #   content-build     - Node 14.15.0, Yarn 1.x, Cypress
+#   simpler-grants    - Node 20, Python 3.11, pnpm (corepack), Poetry
 
 # Option 1: Use absolute path (works from any directory)
 use flake ~/code/nix-configs#vets-website

@@ -123,6 +123,7 @@ Cross-platform development environments for VA projects:
 - **next-build:** Node 24, Yarn 3.x, Playwright → [next-build](https://github.com/department-of-veterans-affairs/next-build)
 - **component-library:** Node 22, Yarn 4.x, Puppeteer → [component-library](https://github.com/department-of-veterans-affairs/component-library)
 - **content-build:** Node 14.15.0, Yarn 1.x, Cypress → content-build
+- **simpler-grants:** Node 20, Python 3.11, pnpm (corepack), Poetry → [simpler-grants-protocol](https://github.com/HHS/simpler-grants-protocol)
 
 **Activate manually:**
 

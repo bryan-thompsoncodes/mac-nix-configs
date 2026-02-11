@@ -27,6 +27,13 @@ let
     # Nix development
     nixd  # Nix language server
 
+    # Language servers (for Neovim)
+    pyright                      # Python
+    lua-language-server          # Lua
+    typescript-language-server   # TypeScript/JavaScript/React
+    typescript                   # Required by ts language server
+    solargraph                   # Ruby/Rails
+
     # JavaScript toolchain
     bun
 
