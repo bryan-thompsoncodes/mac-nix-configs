@@ -1,128 +1,136 @@
 # Agent Guidelines for nix-configs
 
+**Generated:** 2026-02-12 | **Commit:** df32e01 | **Branch:** main
+
+## Overview
+
+Declarative system configs for 3 macOS hosts (nix-darwin) + 1 NixOS desktop. Uses **flake-parts** + **import-tree** for automatic module discovery — modules define both `darwin` and `nixos` aspects in a single file.
+
+## Structure
+
+```
+nix-configs/
+├── flake.nix              # Entry point: flake-parts + import-tree
+├── modules/
+│   ├── _options.nix       # Declares flake.modules option for import-tree merging
+│   ├── base/              # Core: fonts, homebrew, nix-settings, zsh, activation
+│   ├── dev/               # Dev tools: cli-tools, editors, git
+│   ├── desktop/           # NixOS-only: gnome, gaming, audio
+│   ├── services/          # Daemons: ollama, open-webui, monitoring, smb-mount, syncthing, icloud-backup
+│   ├── hosts/             # Host compositions: a6mbp, mbp, studio, gnarbox
+│   └── dev-envs/          # VA project shells (see dev-envs/AGENTS.md)
+├── overlays/              # Single overlay: nixpkgs-unstable → pkgs.unstable
+└── hardware-configs/      # Auto-generated NixOS hardware config
+```
+
+## Where to Look
+
+| Task | Location | Notes |
+|------|----------|-------|
+| Add/remove homebrew package | `modules/base/homebrew.nix` | Update README "Shared Configuration" section |
+| Add nix system package | `modules/dev/cli-tools.nix` | Shared across all hosts |
+| Add host-specific package | `modules/hosts/{host}.nix` | Update README host section |
+| Add new service | `modules/services/` | See `services/AGENTS.md` for pattern |
+| Add dev environment | `modules/dev-envs/` | See `dev-envs/AGENTS.md` for pattern |
+| Change editor config | `modules/dev/editors.nix` | Vim, Neovim |
+| Modify shell/zsh | `modules/base/zsh.nix` | |
+| Add NixOS desktop feature | `modules/desktop/` | gnome.nix, gaming.nix, audio.nix |
+| Change activation scripts | `modules/base/activation.nix` | Alacritty symlink + oh-my-opencode install |
+| Use unstable package | Reference as `unstable.{pkg}` | Overlay in `overlays/default.nix`, enabled on gnarbox |
+
 ## Build/Lint/Test Commands
 
-### Nix Configuration
-- **Build system:** `darwin-rebuild switch --flake '.#hostname'` (macOS) or `sudo nixos-rebuild switch --flake '.#hostname'` (NixOS)
-- **Update dependencies:** `nix flake update`
-- **Check flake:** `nix flake check`
-- **Format code:** `nixpkgs-fmt .`
-
-### Development Environments
-Activate with: `nix develop '.#project-name'` (provides environments for vets-website, vets-api, next-build, component-library, content-build)
-
-## Code Style Guidelines
-
-### Nix Code
-- **Formatting:** Use `nixpkgs-fmt` for consistent formatting
-- **Naming:** Use camelCase for variables, PascalCase for modules
-- **Imports:** Group imports by type (pkgs, lib, local modules)
-- **Error handling:** Use `throw` for fatal errors, `abort` for user errors
-- **Comments:** Use `#` for single-line comments, document complex logic
-- **Structure:** Keep flake.nix clean, use separate .nix files for complex configurations
-
-## Documentation Maintenance
-
-**IMPORTANT:** Keep README.md in sync with configuration changes.
-
-### When to Update README.md
-
-Update the README when modifying:
-
-| Change Type | README Section to Update |
-|-------------|--------------------------|
-| Add/remove homebrew brew or cask in `modules/base/homebrew.nix` | "Shared Configuration" → Homebrew brews/casks |
-| Add/remove service module in `modules/services/` | Architecture tree + relevant host sections |
-| Modify host-specific packages in `modules/hosts/*.nix` | Host section (mbp, a6mbp, studio, gnarbox) |
-| Change dev environment versions in `modules/dev-envs/*.nix` | "Development Environments" section |
-| Add new host or module | Architecture tree + new host section |
-
-### README Sections Reference
-
-- **Lines 10-17:** Module architecture tree
-- **Lines 23-50:** Host configurations (features, services, host-specific packages)
-- **Lines 52-59:** Shared configuration (Nix packages, Homebrew brews/casks)
-- **Lines 121-125:** Development environment versions
-
-### Verification Command
-
-After making changes, verify README accuracy:
 ```bash
-# Check that README matches actual config
+# macOS
+darwin-rebuild switch --flake '.#mbp'     # or a6mbp, studio
+# NixOS
+sudo nixos-rebuild switch --flake '.#gnarbox'
+# Validate
+nix flake check
+# Format
+nixpkgs-fmt .
+# Update inputs
+nix flake update
+# Dev shells
+nix develop '.#vets-website'              # or vets-api, next-build, etc.
+```
+
+## Architecture Pattern: import-tree Module Merging
+
+Every `.nix` file under `modules/` is auto-imported by import-tree. Each module contributes to `flake.modules.{darwin|nixos}.{name}`:
+
+```nix
+# Pattern for feature modules (e.g. services/ollama.nix)
+{ inputs, ... }: {
+  flake.modules.darwin.ollama = { config, lib, ... }: {
+    options.services.ollama = { ... };    # Declare options
+    config = lib.mkIf cfg.enable { ... }; # Implement when enabled
+  };
+  flake.modules.nixos.ollama = { ... }: {
+    # NixOS aspect (or stub)
+  };
+}
+
+# Pattern for host modules (e.g. hosts/a6mbp.nix)
+{ inputs, ... }: {
+  flake.modules.darwin.a6mbp = { pkgs, ... }: {
+    imports = with inputs.self.modules.darwin; [
+      fonts nix-settings zsh homebrew editors git cli-tools activation
+      syncthing  # services
+    ];
+    # Host-specific config...
+  };
+}
+
+# Pattern for dev-envs (e.g. dev-envs/vets-website.nix)
+{ inputs, ... }: {
+  perSystem = { pkgs, ... }: {
+    devShells.vets-website = pkgs.mkShell { ... };
+  };
+}
+```
+
+## Conventions
+
+- **Formatter:** `nixpkgs-fmt`
+- **Naming:** camelCase variables, module filenames are kebab-case
+- **Shared lib:** `_nodeLib.nix` prefix = internal shared module (not a flake output)
+- **Imports:** Group by type — base features, then services, then host-specific
+- **Host structure:** `=== Section ===` comment headers for Core, Services, Packages, Homebrew
+- **Darwin services:** Use `lib.mkEnableOption` + `lib.mkIf cfg.enable` pattern
+- **Homebrew binaries:** Darwin services reference `/opt/homebrew/bin/{tool}` directly
+- **Unstable packages:** Only available on gnarbox via overlay; use `unstable.{pkg}`
+
+## Anti-Patterns
+
+- **NEVER** edit `hardware-configs/gnarbox.nix` — auto-generated by `nixos-generate-config`
+- **NEVER** hardcode platform paths — use `pkgs.stdenv.isDarwin` / `pkgs.stdenv.isLinux`
+- **NEVER** add packages to host files when they should go in feature modules
+- **ALWAYS** update README.md when changing: homebrew packages, services, host packages, dev-env versions
+- Insecure `openssl-1.1.1w` is permitted on gnarbox only (for sublime4) — tracked upstream issue
+- gnarbox uses LTS kernel 6.6 — latest (6.18) breaks xpad-noone driver
+- npm lifecycle scripts disabled by default (`npm_config_ignore_scripts=true`) for security
+
+## Documentation Sync
+
+| Change | README Section |
+|--------|----------------|
+| Homebrew brews/casks in `modules/base/homebrew.nix` | "Shared Configuration" |
+| Service module in `modules/services/` | Architecture tree + host sections |
+| Host packages in `modules/hosts/*.nix` | Host section (mbp, a6mbp, studio, gnarbox) |
+| Dev-env versions in `modules/dev-envs/*.nix` | "Development Environments" |
+
+Verify with:
+```bash
 grep -E "casks|brews" modules/base/homebrew.nix
 grep -E "services\." modules/hosts/*.nix
 ```
 
-## OpenCode with oh-my-opencode
+## Gotchas
 
-This repository uses OpenCode with the oh-my-opencode plugin for enhanced AI agent capabilities.
-
-### Key Features
-
-**Sisyphus Agent:** Main orchestrator that delegates tasks to specialized subagents:
-- oracle - Architecture, code review, strategy (GPT)
-- librarian - Multi-repo analysis, doc lookup (Claude/Gemini)
-- explore - Fast codebase exploration (Grok/Gemini/Haiku)
-- frontend-ui-ux-engineer - UI development (Gemini)
-
-**Productivity Tools:**
-- LSP tools for refactoring and analysis
-- AST grep for structural code patterns
-- Background agents for parallel execution
-- Todo continuation enforcement
-- Context window management
-
-### Usage Guidelines
-
-**For Maximum Performance:**
-Include `ultrawork` or `ulw` in prompts to enable:
-- Parallel agent orchestration
-- Background task delegation
-- Deep exploration
-- Relentless execution until completion
-
-**For Search Tasks:**
-Use keywords like `search`, `find`, `analyze`, `investigate` to activate specialized search and analysis modes.
-
-**Multi-Model Orchestration:**
-Sisyphus automatically selects appropriate models for different tasks:
-- Complex reasoning → Claude Opus 4.5
-- Frontend/UI → Gemini 3 Pro
-- Documentation/Research → Claude Sonnet 4.5 or Gemini 3 Flash
-- Fast exploration → Grok Code or Haiku
-
-### Project Structure Integration
-
-The oh-my-opencode plugin automatically:
-- Injects AGENTS.md and README.md files from project hierarchy
-- Loads commands from `~/.claude/commands/` and `.claude/commands/`
-- Loads skills from `~/.claude/skills/` and `.claude/skills/`
-- Loads MCP configurations from `.mcp.json` files
-
-### Configuration
-
-oh-my-opencode configuration is managed in:
-- User config: `~/.config/opencode/oh-my-opencode.json`
-- Project config: `.opencode/oh-my-opencode.json`
-
-The plugin is installed automatically via activation script in each host module. Default settings use:
-- Claude Team account enabled
-- ChatGPT Team account enabled
-- Gemini free account disabled
-
-### Hooks
-
-Available productivity hooks (all enabled by default):
-- `todo-continuation-enforcer` - Forces agents to finish all todos
-- `comment-checker` - Prevents excessive comments
-- `context-window-monitor` - Warns at 70%+ token usage
-- `keyword-detector` - Auto-activates modes based on prompts
-- `ralph-loop` - Self-referential development loop
-- And many more (see oh-my-opencode docs)
-
-Disable specific hooks in `~/.config/opencode/oh-my-opencode.json`:
-```json
-{
-  "disabled_hooks": ["comment-checker", "startup-toast"]
-}
-```
+- `_options.nix` must exist — declares the `flake.modules` option type that import-tree merges into
+- gnarbox hardware config lives outside `modules/` because import-tree can't handle `modulesPath`
+- Darwin services require the tool installed via Homebrew first (Nix packages alone aren't enough for launchd)
+- NixOS stubs exist in service modules (`# TODO: Implement NixOS equivalent`) — these are intentional placeholders
+- oh-my-opencode auto-installs on activation if not present (see `activation.nix`)
+- 3 git remotes: primary on git.snowboardtechie.com, mirrors on Codeberg and GitHub
