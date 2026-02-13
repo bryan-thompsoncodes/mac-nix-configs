@@ -33,6 +33,9 @@ let
     typescript-language-server   # TypeScript/JavaScript/React
     typescript                   # Required by ts language server
     solargraph                   # Ruby/Rails
+    yaml-language-server         # YAML
+    vacuum-go                    # OpenAPI/Swagger linter
+    nodePackages.graphql-language-service-cli  # GraphQL
 
     # JavaScript toolchain
     bun
