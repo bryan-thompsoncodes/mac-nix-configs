@@ -20,3 +20,6 @@ use flake ~/code/nix-configs#vets-website
 # Option 3: Use nix-direnv for faster shell activation (recommended)
 # Requires nix-direnv to be installed (included in cli-tools module)
 # use flake ~/code/nix-configs#vets-website --impure
+
+# Fetch latest remote refs in the background on directory entry
+git fetch --quiet &
