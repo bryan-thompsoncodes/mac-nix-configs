@@ -58,8 +58,9 @@
         # Then use: corepack pnpm install (or just pnpm if shims are in PATH)
         export COREPACK_HOME="''${HOME}/.cache/corepack"
 
-        # Ensure Poetry uses the nix-provided Python 3.11
+        # Ensure Poetry uses the nix-provided Python and creates .venv in-project
         export POETRY_VIRTUALENVS_PREFER_ACTIVE_PYTHON=true
+        export POETRY_VIRTUALENVS_IN_PROJECT=true
       '';
     };
   };
