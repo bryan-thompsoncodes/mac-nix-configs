@@ -11,7 +11,7 @@ modules/
 ├── base/       # Core system: fonts, homebrew, nix-settings, zsh
 ├── dev/        # Development: cli-tools, editors, git
 ├── desktop/    # GUI: gnome, gaming, audio (NixOS)
-├── services/   # Daemons: ollama, open-webui, monitoring, smb-mount, syncthing, icloud-backup, openclaw (Darwin)
+├── services/   # Daemons: ollama, open-webui, monitoring, smb-mount, syncthing, icloud-backup (Darwin)
 ├── hosts/      # Host-specific: a6mbp, gnarbox, mbp, studio
 └── dev-envs/   # VA project environments
 ```
@@ -37,7 +37,7 @@ Each host imports and composes feature modules. See [modules/README.md](modules/
 ### studio (media server macOS)
 
 **Features:** fonts, nix-settings, zsh, homebrew, editors, git, cli-tools
-**Services:** ollama, open-webui, monitoring, smb-mount, syncthing, icloud-backup, openclaw
+**Services:** ollama, open-webui, monitoring, smb-mount, syncthing, icloud-backup
 **Host-specific:** cloudflared, node, ollama, podman, prometheus, grafana, python@3.11, syncthing, zen
 **Location:** `modules/hosts/studio.nix`
 
@@ -53,7 +53,7 @@ Each host imports and composes feature modules. See [modules/README.md](modules/
 
 All darwin hosts share these packages via feature modules:
 
-**Nix packages:** vim, neovim, alacritty, ripgrep, fd, wget, tree, htop, bat, eza, fzf, direnv, nix-direnv, stow, tmux, ncurses, nixd, bun, delta, jq, zoxide, shellcheck, tea
+**Nix packages:** vim, neovim, alacritty, ripgrep, fd, wget, tree, htop, bat, eza, fzf, direnv, nix-direnv, stow, ncurses, nixd, bun, delta, jq, zoxide, shellcheck, tea, vacuum-go
 **Homebrew brews:** powerlevel10k, zsh-autosuggestions, zsh-syntax-highlighting, bat, bind, ca-certificates, delta, direnv, eza, ffmpeg, fzf, gnupg, jq, just, lazydocker, lazygit, libpq, marksman, ncurses, opencode, pinentry-mac, pipx, poetry, python, redis, shellcheck, stow, tlrc, tmux, zoxide
 **Homebrew casks:** obsidian, opencode-desktop, sol, sublime-text, yaak
 **Font:** MesloLGS Nerd Font
@@ -118,7 +118,7 @@ nix flake update
 
 Cross-platform development environments for VA projects:
 
-- **vets-website:** Node 14.15.0, Yarn 1.x, Cypress → [vets-website](https://github.com/department-of-veterans-affairs/vets-website)
+- **vets-website:** Node 22.22.0, Yarn 1.x, Cypress → [vets-website](https://github.com/department-of-veterans-affairs/vets-website)
 - **vets-api:** Ruby 3.3.6, PostgreSQL, Redis, Kafka → [vets-api](https://github.com/department-of-veterans-affairs/vets-api)
 - **next-build:** Node 24, Yarn 3.x, Playwright → [next-build](https://github.com/department-of-veterans-affairs/next-build)
 - **component-library:** Node 22, Yarn 4.x, Puppeteer → [component-library](https://github.com/department-of-veterans-affairs/component-library)

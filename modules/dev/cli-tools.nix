@@ -21,7 +21,6 @@ let
     direnv
     nix-direnv  # Fast, persistent Nix shell caching for direnv
     stow
-    tmux
     ncurses
 
     # Nix development

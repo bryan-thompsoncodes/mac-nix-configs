@@ -172,6 +172,7 @@
       zsh-syntax-highlighting
 
       # Development tools
+      tmux
       redis
       libpq
       gnupg
