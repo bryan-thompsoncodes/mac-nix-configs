@@ -60,6 +60,7 @@
         "opencode-desktop"
         "sol"
         "sublime-text"
+        "vivaldi"
         "yaak"
       ];
     };
