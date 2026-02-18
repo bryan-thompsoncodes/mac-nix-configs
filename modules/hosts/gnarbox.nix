@@ -186,6 +186,7 @@
 
       # GUI applications
       obsidian
+      vivaldi
 
       # Unstable packages
       unstable.claude-code

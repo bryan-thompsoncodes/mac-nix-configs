@@ -22,41 +22,31 @@ Each host imports and composes feature modules. See [modules/README.md](modules/
 
 ### mbp (personal macOS)
 
-**Features:** fonts, nix-settings, zsh, homebrew, editors, git, cli-tools
-**Services:** syncthing
-**Host-specific:** bambu-studio, discord, monal, rectangle-pro, steam, zen, node, pandoc, texlive, syncthing
-**Location:** `modules/hosts/mbp.nix`
+Personal MacBook Pro with syncthing and personal apps (gaming, messaging, document tools).
+**Location:** [`modules/hosts/mbp.nix`](modules/hosts/mbp.nix)
 
 ### a6mbp (work macOS)
 
-**Features:** fonts, nix-settings, zsh, homebrew, editors, git, cli-tools
-**Services:** syncthing
-**Host-specific:** awscli2, docker-compose, ddev, claude, claude-code, docker-desktop, notion, rectangle-pro, slack, syncthing, zoom
-**Location:** `modules/hosts/a6mbp.nix`
+Work MacBook Pro with syncthing and work tools (AWS, Docker, DDEV, Slack, Zoom).
+**Location:** [`modules/hosts/a6mbp.nix`](modules/hosts/a6mbp.nix)
 
 ### studio (media server macOS)
 
-**Features:** fonts, nix-settings, zsh, homebrew, editors, git, cli-tools
-**Services:** ollama, open-webui, monitoring, smb-mount, syncthing, icloud-backup
-**Host-specific:** cloudflared, node, ollama, podman, prometheus, grafana, python@3.11, syncthing, zen
-**Location:** `modules/hosts/studio.nix`
+Media server Mac running the full service stack: ollama, open-webui, monitoring (Prometheus + Grafana), SMB mount, syncthing, and iCloud backup.
+**Location:** [`modules/hosts/studio.nix`](modules/hosts/studio.nix)
 
 ### gnarbox (NixOS desktop)
 
-**Features:** fonts, nix-settings, zsh, editors, git, cli-tools
-**Desktop:** gnome, gaming, audio
-**Services:** syncthing
-**Host-specific:** redis, libpq, gnupg, vlc, discord, obsidian, claude-code, opencode, yaak, firefox, steam (with proton-ge-bin)
-**Location:** `modules/hosts/gnarbox.nix`
+NixOS desktop with GNOME, gaming (Steam + Proton GE), and PipeWire audio. Uses the unstable overlay for select packages.
+**Location:** [`modules/hosts/gnarbox.nix`](modules/hosts/gnarbox.nix)
 
 ### Shared Configuration
 
-All darwin hosts share these packages via feature modules:
+All darwin hosts share common packages via feature modules. All hosts (including NixOS) share Nix packages for CLI tools, editors, and fonts.
 
-**Nix packages:** vim, neovim, alacritty, ripgrep, fd, wget, tree, htop, bat, eza, fzf, direnv, nix-direnv, stow, ncurses, nixd, bun, delta, jq, zoxide, shellcheck, tea, vacuum-go
-**Homebrew brews:** powerlevel10k, zsh-autosuggestions, zsh-syntax-highlighting, bat, bind, ca-certificates, delta, direnv, eza, ffmpeg, fzf, gnupg, jq, just, lazydocker, lazygit, libpq, marksman, ncurses, opencode, pinentry-mac, pipx, poetry, python, redis, shellcheck, stow, tlrc, tmux, zoxide
-**Homebrew casks:** obsidian, opencode-desktop, sol, sublime-text, yaak
-**Font:** MesloLGS Nerd Font
+- **Nix packages:** See [`modules/dev/cli-tools.nix`](modules/dev/cli-tools.nix), [`modules/dev/editors.nix`](modules/dev/editors.nix)
+- **Homebrew brews/casks:** See [`modules/base/homebrew.nix`](modules/base/homebrew.nix)
+- **Font:** MesloLGS Nerd Font (see [`modules/base/fonts.nix`](modules/base/fonts.nix))
 
 ## Prerequisites
 
@@ -123,7 +113,7 @@ Cross-platform development environments for VA projects:
 - **next-build:** Node 24, Yarn 3.x, Playwright → [next-build](https://github.com/department-of-veterans-affairs/next-build)
 - **component-library:** Node 22, Yarn 4.x, Puppeteer → [component-library](https://github.com/department-of-veterans-affairs/component-library)
 - **content-build:** Node 14.15.0, Yarn 1.x, Cypress → content-build
-- **simpler-grants:** Node 20, Python 3.11, pnpm (corepack), Poetry → [simpler-grants-protocol](https://github.com/HHS/simpler-grants-protocol)
+- **simpler-grants:** Node 20, Python 3.11, pnpm (corepack) → [simpler-grants-protocol](https://github.com/HHS/simpler-grants-protocol) *(Poetry must be installed separately via `brew install poetry` or `pipx install poetry`)*
 
 **Activate manually:**
 
@@ -135,7 +125,7 @@ Development environment definitions are located in `modules/dev-envs/`.
 
 ## OpenCode & oh-my-opencode
 
-OpenCode is installed via Homebrew on all darwin systems. The oh-my-opencode plugin is automatically installed on rebuild (via activation script in each host module).
+OpenCode is installed via Homebrew on all darwin systems. The oh-my-opencode plugin is automatically installed on rebuild via the shared activation module (`modules/base/activation.nix`).
 
 **Installation:**
 
