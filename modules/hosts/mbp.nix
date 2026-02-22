@@ -14,6 +14,9 @@
       git
       cli-tools
       activation
+      # Desktop features
+      gaming
+      reaper
       # Service modules
       syncthing
     ];
@@ -54,10 +57,8 @@
       # Additional casks for this host
       casks = [
         "bambu-studio"
-        "discord"
         "monal"
         "rectangle-pro"
-        "steam"
         "zen"
       ];
     };
