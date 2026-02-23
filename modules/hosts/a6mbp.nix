@@ -70,6 +70,7 @@
         "notion"
         "rectangle-pro"
         "slack"
+        "superwhisper"
         "zoom"
       ];
     };

@@ -4,6 +4,9 @@
 {
   flake.modules.darwin.zsh = { pkgs, ... }: {
     programs.zsh.enable = true;
+    programs.zsh.interactiveShellInit = ''
+      ulimit -n 10240
+    '';
   };
   
   flake.modules.nixos.zsh = { pkgs, ... }: {
