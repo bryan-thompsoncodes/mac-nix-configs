@@ -14,6 +14,7 @@
       # Additional build tools for vets-website
       extraBuildTools = with pkgs; [
         vips
+        biome
         nodePackages.typescript-language-server
         nodePackages.typescript
       ];
