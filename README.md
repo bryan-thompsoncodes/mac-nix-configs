@@ -44,8 +44,12 @@ NixOS desktop with GNOME, gaming (Steam + Proton GE), and PipeWire audio. Uses t
 
 All darwin hosts share common packages via feature modules. All hosts (including NixOS) share Nix packages for CLI tools, editors, and fonts.
 
-- **Nix packages:** See [`modules/dev/cli-tools.nix`](modules/dev/cli-tools.nix), [`modules/dev/editors.nix`](modules/dev/editors.nix)
-- **Homebrew brews/casks:** See [`modules/base/homebrew.nix`](modules/base/homebrew.nix)
+Feature modules own both platform aspects: darwin uses `homebrew.brews`/`homebrew.casks`, NixOS uses `environment.systemPackages`. This keeps each capability self-contained.
+
+- **CLI tools (both platforms):** [`modules/dev/cli-tools.nix`](modules/dev/cli-tools.nix)
+- **Git tools (both platforms):** [`modules/dev/git.nix`](modules/dev/git.nix)
+- **Editor tools (both platforms):** [`modules/dev/editors.nix`](modules/dev/editors.nix)
+- **Homebrew infrastructure:** [`modules/base/homebrew.nix`](modules/base/homebrew.nix) (onActivation settings, taps, darwin-only items)
 - **Font:** MesloLGS Nerd Font (see [`modules/base/fonts.nix`](modules/base/fonts.nix))
 
 ## Prerequisites

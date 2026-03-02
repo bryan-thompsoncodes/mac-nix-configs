@@ -5,16 +5,19 @@
 {
   flake.modules.darwin.editors = { pkgs, ... }: {
     environment.systemPackages = with pkgs; [
-      vim
       neovim
+      vim
+    ];
+    homebrew.casks = [
+      "sublime-text"
     ];
   };
 
   flake.modules.nixos.editors = { pkgs, ... }: {
     environment.systemPackages = with pkgs; [
-      vim
       neovim
       sublime
+      vim
     ];
   };
 }

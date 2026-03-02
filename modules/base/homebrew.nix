@@ -1,5 +1,7 @@
 # Base module: Homebrew configuration
-# Provides Homebrew package management for darwin systems
+# Provides Homebrew infrastructure and darwin-only packages.
+# Feature modules (zsh.nix, git.nix, editors.nix, cli-tools.nix) contribute
+# additional brews/casks via their darwin aspects.
 # Note: Homebrew is darwin-only, no nixos aspect needed
 { ... }:
 {
@@ -17,49 +19,16 @@
       taps = [
       ];
 
-      # Common Homebrew brews
+      # Darwin-only packages (no NixOS equivalent)
       brews = [
-        # Zsh plugins
-        "powerlevel10k"
-        "zsh-autosuggestions"
-        "zsh-syntax-highlighting"
-
-        # CLI tools
-        "bat"
-        "bind"
         "ca-certificates"
-        "delta"
-        "direnv"
-        "eza"
-        "ffmpeg"
-        "fzf"
-        "gnupg"
-        "jq"
-        "just"
-        "lazydocker"
-        "lazygit"
-        "libpq"
-        "marksman"
-        "ncurses"
-        "opencode"
-        "pinentry-mac"
-        "pipx"
-        "poetry"
-        "python"
-        "redis"
-        "shellcheck"
-        "stow"
-        "tlrc"
-        "tmux"
-        "zoxide"
       ];
 
-      # Common Homebrew casks
+      # Common Homebrew casks (GUI applications)
       casks = [
         "obsidian"
         "opencode-desktop"
         "sol"
-        "sublime-text"
         "vivaldi"
         "yaak"
       ];

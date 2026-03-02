@@ -1,58 +1,109 @@
 # Development module: CLI tools
 # Provides common CLI utilities for both darwin and nixos systems
+# Darwin: shared tools via Homebrew + nix-only packages via nixpkgs
+# NixOS: all packages via nixpkgs
 { inputs, ... }:
-let
-  # Shared package list for both platforms
-  cliPackages = pkgs: with pkgs; [
-    # Terminal
-    alacritty
-
-    # CLI utilities - modern replacements
-    ripgrep  # better grep
-    fd       # better find
-
-    # CLI utilities - general
-    wget
-    tree
-    htop
-    bat
-    eza
-    fzf
-    direnv
-    nix-direnv  # Fast, persistent Nix shell caching for direnv
-    stow
-    ncurses
-
-    # Nix development
-    nixd  # Nix language server
-
-    # Language servers (for Neovim)
-    pyright                      # Python
-    lua-language-server          # Lua
-    typescript-language-server   # TypeScript/JavaScript/React
-    typescript                   # Required by ts language server
-    solargraph                   # Ruby/Rails
-    yaml-language-server         # YAML
-    vacuum-go                    # OpenAPI/Swagger linter
-    nodePackages.graphql-language-service-cli  # GraphQL
-
-    # JavaScript toolchain
-    bun
-
-    # Additional tools
-    delta       # better git diffs
-    jq          # JSON processor
-    zoxide      # smarter cd
-    shellcheck  # shell script linter
-    tea         # Gitea/Forgejo CLI (gh alternative)
-  ];
-in
 {
+  # Darwin aspect - hybrid delivery
   flake.modules.darwin.cli-tools = { pkgs, ... }: {
-    environment.systemPackages = cliPackages pkgs;
+    # Homebrew brews for macOS compatibility
+    homebrew.brews = [
+      "bat"
+      "bind"
+      "direnv"
+      "eza"
+      "ffmpeg"
+      "fzf"
+      "gnupg"
+      "jq"
+      "just"
+      "lazydocker"
+      "libpq"
+      "marksman"
+      "ncurses"
+      "opencode"
+      "pinentry-mac"
+      "pipx"
+      "poetry"
+      "python"
+      "redis"
+      "shellcheck"
+      "stow"
+      "tlrc"
+      "tmux"
+      "zoxide"
+    ];
+
+    # Nix-only packages (no homebrew equivalent)
+    environment.systemPackages = with pkgs; [
+      alacritty
+      bun
+      fd
+      htop
+      nix-direnv
+      nixd
+      ripgrep
+      tea
+      tree
+      wget
+      # Language servers
+      lua-language-server
+      nodePackages.graphql-language-service-cli
+      pyright
+      solargraph
+      typescript
+      typescript-language-server
+      yaml-language-server
+      vacuum-go
+    ];
   };
 
+  # NixOS aspect - all packages via nixpkgs
   flake.modules.nixos.cli-tools = { pkgs, ... }: {
-    environment.systemPackages = cliPackages pkgs;
+    # All CLI tools as nix packages
+    environment.systemPackages = with pkgs; [
+      alacritty
+      bat
+      bun
+      direnv
+      dnsutils # dig, nslookup (brew: bind)
+      eza
+      fd
+      ffmpeg
+      fzf
+      gnupg
+      htop
+      jq
+      just
+      lazydocker
+      libpq
+      marksman
+      ncurses
+      nix-direnv
+      nixd
+      opencode
+      pipx
+      poetry
+      python3 # (brew: python)
+      redis
+      ripgrep
+      shellcheck
+      stow
+      tea
+      tlrc
+      tmux
+      tree
+      vacuum-go
+      wget
+      zoxide
+      # Language servers
+      lua-language-server
+      nodePackages.graphql-language-service-cli
+      pyright
+      solargraph
+      typescript
+      typescript-language-server
+      yaml-language-server
+    ];
   };
 }

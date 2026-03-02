@@ -65,15 +65,16 @@ Is this a host-specific setting (only one host needs it)?
 
 **Edge cases:**
 - A Homebrew cask used on only one host → still goes in `modules/hosts/{host}.nix` under `homebrew.casks`
-- A Homebrew brew shared by all → goes in `modules/base/homebrew.nix`
+- A shared CLI tool → goes in the relevant feature module (`cli-tools.nix`, `git.nix`, etc.), not `homebrew.nix`
 - A package needed by one host today but likely others later → feature module now, don't wait
 
 ## Where to Look
 
 | Task | Location | Notes |
 |------|----------|-------|
-| Add/remove homebrew package | `modules/base/homebrew.nix` | Update README "Shared Configuration" section |
-| Add nix system package | `modules/dev/cli-tools.nix` | Shared across all hosts |
+| Add/remove shared CLI tool | `modules/dev/cli-tools.nix` | Darwin: `homebrew.brews`; NixOS: `environment.systemPackages` |
+| Add/remove git/editor tool | `modules/dev/git.nix`, `modules/dev/editors.nix` | Same dual-platform pattern as cli-tools |
+| Add/remove homebrew infrastructure | `modules/base/homebrew.nix` | Infrastructure only (onActivation, taps) + darwin-only items (ca-certificates) |
 | Add host-specific package | `modules/hosts/{host}.nix` | Update README host section |
 | Add new service | `modules/services/` | See `services/AGENTS.md` for pattern |
 | Add dev environment | `modules/dev-envs/` | See `dev-envs/AGENTS.md` for pattern |
@@ -144,6 +145,7 @@ Every `.nix` file under `modules/` is auto-imported by import-tree. Each module 
 - **Host structure:** `=== Section ===` comment headers for Core, Services, Packages, Homebrew
 - **Darwin services:** Use `lib.mkEnableOption` + `lib.mkIf cfg.enable` pattern
 - **Homebrew binaries:** Darwin services reference `/opt/homebrew/bin/{tool}` directly
+- **Dual-platform packages:** Feature modules own both platform aspects. Darwin uses `homebrew.brews`/`homebrew.casks`; NixOS uses `environment.systemPackages`. `homebrew.nix` is infrastructure-only (onActivation settings, taps, darwin-only items like ca-certificates).
 - **Unstable packages:** Only available on gnarbox via overlay; use `unstable.{pkg}`
 
 ## Anti-Patterns
