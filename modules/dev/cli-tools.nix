@@ -31,6 +31,7 @@
       "stow"
       "tlrc"
       "tmux"
+      "worktrunk"
       "zoxide"
     ];
 
