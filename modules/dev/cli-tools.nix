@@ -62,7 +62,7 @@
   # NixOS aspect - all packages via nixpkgs
   flake.modules.nixos.cli-tools = { pkgs, ... }: {
     # All CLI tools as nix packages
-    environment.systemPackages = with pkgs; [
+    environment.systemPackages = (with pkgs; [
       alacritty
       bat
       bun
@@ -72,6 +72,7 @@
       fd
       ffmpeg
       fzf
+      gh-dash
       gnupg
       htop
       jq
@@ -105,6 +106,9 @@
       typescript
       typescript-language-server
       yaml-language-server
+    ]) ++ [
+      # External flake inputs (not in nixpkgs)
+      inputs.worktrunk.packages.${pkgs.system}.default
     ];
   };
 }
