@@ -21,6 +21,7 @@
         editors
         git
         cli-tools
+        rust
         activation
         # Desktop features
         gnome

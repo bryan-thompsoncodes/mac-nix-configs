@@ -13,6 +13,7 @@
       editors
       git
       cli-tools
+      rust
       activation
       # Desktop features
       gaming
