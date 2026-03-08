@@ -65,7 +65,6 @@
       # Additional casks for this host
       casks = [
         "claude"
-        "claude-code"
         "docker-desktop"
         "notion"
         "rectangle-pro"
