@@ -2,7 +2,7 @@
 #
 # Features: fonts, nix-settings, zsh, homebrew, editors, git, cli-tools
 # Services: ollama, open-webui, monitoring, smb-mount, syncthing, icloud-backup
-# Host-specific: Media server tools (cloudflared, ffmpeg, etc.)
+# Host-specific: Media server tools (cloudflared, etc.)
 { inputs, ... }:
 {
   flake.modules.darwin.studio = { ... }: {
@@ -51,15 +51,45 @@
     services.syncthing.enable = true;
     services.icloud-backup.enable = true;
 
+    # === Service Health & UNRAID NAS Monitoring ===
+
+    services.monitoring.blackbox.targets = [
+      "http://localhost:11434/api/tags"   # Ollama
+      "http://localhost:8080/health"       # Open-WebUI
+      "http://localhost:32400/web/index.html"  # Plex (avoids /web → /web/index.html redirect)
+      "http://localhost:8384/rest/noauth/health"  # Syncthing
+      "http://192.168.1.3/login"          # UNRAID Web UI (avoids / → /Main → /login redirects)
+    ];
+
+    services.monitoring.extraScrapeConfigs = [
+      {
+        job_name = "unraid-node";
+        static_configs = [{
+          targets = [ "192.168.1.3:9100" ];
+          labels = { host = "unraid"; };
+        }];
+      }
+      {
+        job_name = "unraid-cadvisor";
+        static_configs = [{
+          targets = [ "192.168.1.3:6666" ];
+          labels = { host = "unraid"; };
+        }];
+      }
+    ];
+
     # === Host-specific Homebrew Configuration ===
 
     homebrew = {
       brews = [
         "cloudflared"
-        "node"         # Includes npm and npx for MCP extensions
-        "ollama"
-        "prometheus"
         "grafana"
+        "loki"
+        "node"         # Includes npm and npx for MCP extensions
+        "node_exporter"
+        "ollama"
+
+        "promtail"
         "python@3.11"  # For Open WebUI
         "syncthing"
       ];
