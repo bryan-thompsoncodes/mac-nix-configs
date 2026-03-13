@@ -1,8 +1,9 @@
 # SMB network storage mount service
 #
 # Mounts an SMB share on boot/wake with retry logic. Uses credentials from
-# ~/.smb-credentials file. Does not poll periodically to avoid disrupting
-# active streams - only remounts when network configuration changes.
+# ~/.smb-credentials file. Periodic health check ensures the mount is always
+# present. Mount check uses `mount | grep` (no I/O to the share), so it's
+# safe during active streams.
 { inputs, ... }:
 {
   # Darwin aspect - full configuration from modules/darwin/services/smb-mount.nix
@@ -40,15 +41,30 @@
         exit 1
       fi
 
-      # Ensure mount point exists
-      mkdir -p "$MOUNT_POINT"
-
-      # Check if already mounted - use mount command only, don't probe the share
-      # Probing with ls during active streaming can cause timeouts and trigger remounts
+      # Check if the share is already mounted at our mount point
       if mount | grep -q " on $MOUNT_POINT "; then
         echo "Already mounted at $MOUNT_POINT, skipping"
         exit 0
       fi
+
+      # Check if macOS already mounted the share elsewhere (Finder/Bonjour → /Volumes/*)
+      EXISTING_MOUNT=$(mount | grep -i "/$SHARE " | grep smbfs | awk '{print $3}')
+      if [ -n "$EXISTING_MOUNT" ]; then
+        # Symlink our mount point to the existing Bonjour mount
+        if [ -L "$MOUNT_POINT" ] && [ "$(readlink "$MOUNT_POINT")" = "$EXISTING_MOUNT" ]; then
+          echo "Symlink already correct: $MOUNT_POINT -> $EXISTING_MOUNT"
+          exit 0
+        fi
+        rm -f "$MOUNT_POINT" 2>/dev/null
+        ln -s "$EXISTING_MOUNT" "$MOUNT_POINT"
+        echo "Symlinked $MOUNT_POINT -> $EXISTING_MOUNT"
+        exit 0
+      fi
+
+      # No mount exists anywhere — mount it ourselves
+      # Remove stale symlink if Bonjour mount went away
+      [ -L "$MOUNT_POINT" ] && rm -f "$MOUNT_POINT"
+      mkdir -p "$MOUNT_POINT"
 
       # Wait for network to be ready
       echo "Checking network connectivity to $SERVER..."
@@ -121,8 +137,10 @@
           ProgramArguments = [ "${mountScript}" ];
           RunAtLoad = true;
           KeepAlive = false;
-          # Re-run only when network configuration changes (wake from sleep, network reconnect)
-          # This replaces StartInterval polling which was disrupting active streams
+          # Periodic health check — re-mounts if the share dropped.
+          # Safe because the script checks `mount | grep`, not I/O on the share.
+          StartInterval = 300;
+          # Also re-run immediately on network config changes (wake, reconnect)
           WatchPaths = cfg.watchPaths;
           StandardOutPath = "/tmp/smb-mount.log";
           StandardErrorPath = "/tmp/smb-mount.error.log";
