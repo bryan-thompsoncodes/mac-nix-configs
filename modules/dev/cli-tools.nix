@@ -14,6 +14,7 @@
       "eza"
       "ffmpeg"
       "fzf"
+      "git-lfs"
       "gnupg"
       "jq"
       "just"
