@@ -3,62 +3,65 @@
 {
   perSystem = { pkgs, ... }: {
     devShells.simpler-grants = let
-      nodeLib = import ./_nodeLib.nix { inherit pkgs; };
-
-      # Node.js 20 for simpler-grants-protocol (matches CI: node-version "20.x")
-      nodejs = pkgs.nodejs_20;
+      # Node.js 22 LTS for simpler-grants-protocol
+      nodejs = pkgs.nodejs_22;
 
     in
     pkgs.mkShell {
       buildInputs = [
         nodejs
-        pkgs.nodePackages.pnpm
+        # pnpm is managed via corepack (reads packageManager from package.json)
+        # Do NOT add pkgs.nodePackages.pnpm — it shadows the corepack shim
         pkgs.python311
         # poetry is NOT included due to aarch64-darwin build issues with rapidfuzz
         # Install poetry via Homebrew: brew install poetry
         # Or via pipx: pipx install poetry
         pkgs.ruff
         pkgs.black
-        pkgs.pyright
+        pkgs.mypy
         pkgs.git
-      ] ++ nodeLib.commonBuildTools;
+        # Native module build tools (subset of nodeLib.commonBuildTools)
+        pkgs.gcc
+        pkgs.gnumake
+        pkgs.pkg-config
+      ];
 
       shellHook = ''
         echo "🚀 simpler-grants-protocol development environment"
         echo ""
-        echo "Node version: $(node --version)"
-        echo "Python version: $(python3 --version)"
+        echo "Node:   $(node --version)"
+        echo "Python: $(python3 --version 2>&1 | cut -d' ' -f2)"
         if command -v poetry &> /dev/null; then
-          echo "Poetry version: $(poetry --version 2>&1 | head -1)"
+          echo "Poetry: $(poetry --version 2>&1 | grep -oP '[\d.]+')"
         else
-          echo "⚠️  Poetry not found! Install via: brew install poetry"
+          echo "⚠️  Poetry not found — install via: brew install poetry"
         fi
         echo ""
-        echo "📦 Next steps:"
-        echo "  1. Run 'corepack pnpm install' to install Node dependencies"
-        echo "  2. Run 'cd lib/python-sdk && poetry install' for Python SDK"
-        echo "  3. Run 'pnpm build' to build packages"
-        echo ""
-        echo "💡 Useful commands:"
-        echo "  - pnpm build              # Build all packages"
-        echo "  - pnpm test               # Run tests"
-        echo "  - pnpm lint               # Lint all packages"
-        echo "  - cd templates/fast-api && make test   # Run FastAPI template tests"
-        echo "  - cd lib/python-sdk && poetry run pytest  # Run Python SDK tests"
+        if [[ ! -d node_modules ]]; then
+          echo "📦 Run: pnpm install"
+        fi
+        if [[ ! -d lib/python-sdk/.venv ]]; then
+          echo "📦 Run: cd lib/python-sdk && poetry install"
+        fi
         echo ""
 
-        ${nodeLib.nodeEnvSetup}
+        # ─── Node.js environment ─────────────────────────────────
+        export NODE_OPTIONS="--max-old-space-size=4096"
+        export PATH="$PWD/node_modules/.bin:$PATH"
 
-        # Override: this project uses ESLint 9 flat config
+        # This project uses ESLint 9 flat config
         unset ESLINT_USE_FLAT_CONFIG
 
-        # Corepack for pnpm version management (reads packageManager from package.json)
-        # NOTE: corepack enable cannot run in shellHook (nix store is read-only)
-        # Users should run: corepack prepare pnpm@10.18.3 --activate
-        # Then use: corepack pnpm install (or just pnpm if shims are in PATH)
-        export COREPACK_HOME="''${HOME}/.cache/corepack"
+        # npm supply chain hardening
+        export npm_config_ignore_scripts=true
 
-        # Ensure Poetry uses the nix-provided Python and creates .venv in-project
+        # ─── Corepack / pnpm ─────────────────────────────────────
+        export COREPACK_HOME="''${HOME}/.cache/corepack"
+        # Install corepack shims to a writable location (nix store is read-only)
+        corepack enable --install-directory "''${HOME}/.local/bin" 2>/dev/null || true
+        export PATH="''${HOME}/.local/bin:$PATH"
+
+        # ─── Poetry / Python ─────────────────────────────────────
         export POETRY_VIRTUALENVS_PREFER_ACTIVE_PYTHON=true
         export POETRY_VIRTUALENVS_IN_PROJECT=true
       '';
