@@ -59,7 +59,10 @@
       brews = [
         # DDEV for va.gov-cms development
         "ddev/ddev/ddev"
+        "libfido2"     # FIDO2/U2F tools
+        "pinentry-mac" # GPG pinentry for macOS
         "syncthing"
+        "ykman"    # YubiKey Manager CLI
       ];
 
       # Additional casks for this host
@@ -70,6 +73,7 @@
         "rectangle-pro"
         "slack"
         "superwhisper"
+        "yubico-authenticator"
         "zoom"
       ];
     };

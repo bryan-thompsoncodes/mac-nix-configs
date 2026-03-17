@@ -123,6 +123,7 @@
       # === Services ===
 
       services = {
+        pcscd.enable = true;  # Smart card daemon for YubiKey CCID
         printing.enable = true;
         # Disable upower - not needed on desktop without batteries
         upower.enable = lib.mkForce false;
@@ -186,6 +187,9 @@
 
         # Host-specific packages
         yaak
+        libfido2         # FIDO2/U2F tools
+        yubioath-flutter # Yubico Authenticator
+        yubikey-manager  # ykman CLI
       ];
 
       # === System State ===
