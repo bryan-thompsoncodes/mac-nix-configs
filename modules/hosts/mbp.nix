@@ -58,6 +58,7 @@
       # Additional casks for this host
       casks = [
         "bambu-studio"
+        "claude"
         "monal"
         "rectangle-pro"
         "zen"
