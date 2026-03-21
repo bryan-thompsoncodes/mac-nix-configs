@@ -38,6 +38,18 @@
         default = "5m";
         description = "How long to keep models loaded (0 = unload immediately, -1 = forever)";
       };
+
+      maxLoadedModels = lib.mkOption {
+        type = lib.types.int;
+        default = 1;
+        description = "Maximum number of models loaded concurrently";
+      };
+
+      numParallel = lib.mkOption {
+        type = lib.types.int;
+        default = 1;
+        description = "Maximum number of parallel requests per model";
+      };
     };
 
     config = let
@@ -57,6 +69,8 @@
             OLLAMA_FLASH_ATTENTION = if cfg.flashAttention then "1" else "0";
             OLLAMA_KV_CACHE_TYPE = cfg.kvCacheType;
             OLLAMA_KEEP_ALIVE = cfg.keepAlive;
+            OLLAMA_MAX_LOADED_MODELS = toString cfg.maxLoadedModels;
+            OLLAMA_NUM_PARALLEL = toString cfg.numParallel;
           };
         };
       };
