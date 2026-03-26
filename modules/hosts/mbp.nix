@@ -64,6 +64,7 @@
         "claude"
         "monal"
         "rectangle-pro"
+        "slack"
         "yubico-authenticator"
         "zen"
       ];
