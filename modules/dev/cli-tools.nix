@@ -52,10 +52,11 @@
       ripgrep
       tea
       tree
+      ttyper
       wget
       # Language servers
       lua-language-server
-      nodePackages.graphql-language-service-cli
+      graphql-language-service-cli
       pyright
       solargraph
       typescript
@@ -101,12 +102,13 @@
       tlrc
       tmux
       tree
+      ttyper
       vacuum-go
       wget
       zoxide
       # Language servers
       lua-language-server
-      nodePackages.graphql-language-service-cli
+      graphql-language-service-cli
       pyright
       solargraph
       typescript

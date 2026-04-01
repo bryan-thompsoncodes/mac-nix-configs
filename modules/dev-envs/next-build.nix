@@ -19,8 +19,8 @@
           yarn
           pkgs.git
           pkgs.docker
-          pkgs.nodePackages.typescript-language-server
-          pkgs.nodePackages.typescript
+          pkgs.typescript-language-server
+          pkgs.typescript
           nodeLib.yarnInstallWithScripts
         ] ++ nodeLib.commonBuildTools ++ nodeLib.browserTestingDeps;
 

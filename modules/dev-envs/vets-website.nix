@@ -15,8 +15,8 @@
       extraBuildTools = with pkgs; [
         vips
         biome
-        nodePackages.typescript-language-server
-        nodePackages.typescript
+        typescript-language-server
+        typescript
       ];
 
     in
