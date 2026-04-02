@@ -67,6 +67,7 @@
         "slack"
         "yubico-authenticator"
         "zen"
+        "zoom"
       ];
     };
   };
