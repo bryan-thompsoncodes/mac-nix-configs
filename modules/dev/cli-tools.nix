@@ -9,6 +9,7 @@
     # Homebrew brews for macOS compatibility
     homebrew.brews = [
       "bat"
+      "biome"
       "bind"
       "direnv"
       "eza"
@@ -72,6 +73,7 @@
     environment.systemPackages = (with pkgs; [
       alacritty
       bat
+      biome
       bun
       direnv
       dnsutils # dig, nslookup (brew: bind)
