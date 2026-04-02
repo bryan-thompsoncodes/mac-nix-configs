@@ -26,6 +26,7 @@
 
       # Common Homebrew casks (GUI applications)
       casks = [
+        "font-meslo-lg-nerd-font"
         "obsidian"
         "opencode-desktop"
         "sol"
