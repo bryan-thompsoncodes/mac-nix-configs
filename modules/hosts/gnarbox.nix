@@ -44,6 +44,7 @@
         # Add overlays from flake exports
         overlays = [
           outputs.overlays.unstable
+          outputs.overlays.zen-browser
         ];
         # Platform
         hostPlatform = "x86_64-linux";
@@ -178,9 +179,11 @@
         # GUI applications
         obsidian
         vivaldi
+        zen-browser
 
         # Unstable packages
-        unstable.claude-code
+        # NOTE: claude-code temporarily removed - npm package yanked
+        # Re-enable when nixpkgs updates: unstable.claude-code
 
         # GNOME extensions
         gnomeExtensions.hide-top-bar
