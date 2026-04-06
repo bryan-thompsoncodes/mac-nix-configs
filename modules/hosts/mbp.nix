@@ -63,6 +63,7 @@
         "bambu-studio"
         "claude"
         "monal"
+        "qobuz"
         "rectangle-pro"
         "slack"
         "yubico-authenticator"
