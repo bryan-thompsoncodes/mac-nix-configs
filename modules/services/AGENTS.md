@@ -39,7 +39,7 @@ Every service module defines **both** platform aspects:
 |---------|---------|--------|------------|-------|
 | ollama | 11434 | `/opt/homebrew/bin/ollama` | Always-on | Flash attention, q8_0 KV cache |
 | open-webui | 8080 | pip-installed `open-webui` | Always-on + daily updater | 2 agents: main + auto-updater |
-| monitoring | 9090, 9100, 3000, 3100, 9080, 9115 | prometheus, node_exporter, grafana, loki, promtail, blackbox_exporter | Always-on | Binds 0.0.0.0; 6 agents; SMTP via smtp2go; blackbox_exporter via nixpkgs derivation |
+| monitoring | 9090, 9100, 3000, 3100, 12345, 9115 | prometheus, node_exporter, grafana, loki, alloy, blackbox_exporter | Always-on | Binds 0.0.0.0; 6 agents; SMTP via smtp2go; blackbox_exporter via nixpkgs derivation; alloy replaced promtail (EOL March 2026) |
 | syncthing | 8384, 22000 | `/opt/homebrew/bin/syncthing` | Always-on | NixOS uses native module directly |
 | smb-mount | — | mount_smbfs | Event-driven (WatchPaths) | Soft mount, no polling |
 | icloud-backup | — | /usr/bin/rsync | Calendar (2:00 AM) | Excludes .stversions/.syncthing* |
