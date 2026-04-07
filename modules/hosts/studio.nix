@@ -89,7 +89,7 @@
         "node_exporter"
         "ollama"
 
-        "promtail"
+        "grafana-alloy"
         "python@3.11"  # For Open WebUI
         "syncthing"
       ];

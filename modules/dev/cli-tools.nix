@@ -118,7 +118,7 @@
       yaml-language-server
     ]) ++ [
       # External flake inputs (not in nixpkgs)
-      inputs.worktrunk.packages.${pkgs.system}.default
+      inputs.worktrunk.packages.${pkgs.stdenv.hostPlatform.system}.default
     ];
   };
 }

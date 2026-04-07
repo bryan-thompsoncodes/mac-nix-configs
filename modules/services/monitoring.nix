@@ -1,7 +1,7 @@
-# Monitoring stack service (Prometheus + Grafana + node_exporter + Loki + Promtail + blackbox_exporter)
+# Monitoring stack service (Prometheus + Grafana + node_exporter + Loki + Alloy + blackbox_exporter)
 #
 # Provides metrics collection, log aggregation, and visualization. Grafana, node_exporter,
-# Loki, and Promtail use Homebrew. Prometheus and blackbox_exporter use nixpkgs derivations
+# Loki, and Alloy use Homebrew. Prometheus and blackbox_exporter use nixpkgs derivations
 # (Homebrew Prometheus builds with netgo which breaks multi-interface routing on macOS).
 # All services bind to 0.0.0.0 for network access.
 # Configuration is fully declarative: prometheus.yml, Loki config, and Grafana provisioning
@@ -228,46 +228,46 @@
       };
     });
 
-    # Promtail configuration
-    promtailConfigFile = pkgs.writeText "promtail-config.yaml" (builtins.toJSON {
-      server = {
-        http_listen_port = cfg.promtail.port;
-        grpc_listen_port = 0;
-      };
-      positions = {
-        filename = "${homeDir}/.promtail/positions.yaml";
-      };
-      clients = [{
-        url = "http://localhost:${toString cfg.loki.port}/loki/api/v1/push";
-      }];
-      scrape_configs = [
-        {
-          job_name = "service-logs";
-          static_configs = [{
-            targets = ["localhost"];
-            labels = {
-              host = "studio";
-              __path__ = "/tmp/*.log";
-            };
-          }];
+    # Grafana Alloy configuration (replaces promtail — EOL March 2026)
+    alloyConfigFile = pkgs.writeText "alloy-config.alloy" ''
+      // Discover service log files
+      local.file_match "service_logs" {
+        path_targets = [{"__path__" = "/tmp/*.log", "host" = "studio"}]
+      }
+
+      // Read discovered log files and ship to Loki
+      loki.source.file "service_logs" {
+        targets    = local.file_match.service_logs.targets
+        forward_to = [loki.write.default.receiver]
+      }
+
+      // Receive syslog from unraid
+      loki.source.syslog "unraid" {
+        listener {
+          address       = "0.0.0.0:1514"
+          protocol      = "udp"
+          syslog_format = "rfc3164"
+          labels        = { host = "unraid" }
         }
-        {
-          job_name = "syslog";
-          syslog = {
-            listen_address = "0.0.0.0:1514";
-            listen_protocol = "udp";
-            syslog_format = "rfc3164";
-            labels = {
-              host = "unraid";
-            };
-          };
-          relabel_configs = [{
-            source_labels = ["__syslog_message_hostname"];
-            target_label = "hostname";
-          }];
+        forward_to = [loki.relabel.syslog.receiver]
+      }
+
+      // Relabel syslog hostname
+      loki.relabel "syslog" {
+        rule {
+          source_labels = ["__syslog_message_hostname"]
+          target_label  = "hostname"
         }
-      ];
-    });
+        forward_to = [loki.write.default.receiver]
+      }
+
+      // Push logs to Loki
+      loki.write "default" {
+        endpoint {
+          url = "http://localhost:${toString cfg.loki.port}/loki/api/v1/push"
+        }
+      }
+    '';
 
     # Blackbox exporter configuration
     blackboxConfigFile = pkgs.writeText "blackbox.yml" (builtins.toJSON {
@@ -349,11 +349,11 @@
         };
       };
 
-      promtail = {
+      alloy = {
         port = lib.mkOption {
           type = lib.types.port;
-          default = 9080;
-          description = "Port for Promtail HTTP server";
+          default = 12345;
+          description = "Port for Alloy HTTP server";
         };
       };
 
@@ -387,7 +387,7 @@
         mkdir -p "${cfg.prometheus.storagePath}"
         mkdir -p "${cfg.grafana.dataPath}"
         mkdir -p "${cfg.loki.storagePath}"
-        mkdir -p "${homeDir}/.promtail"
+        mkdir -p "${homeDir}/.alloy/data"
       '';
 
       # Prometheus service configuration
@@ -464,17 +464,20 @@
         };
       };
 
-      # Promtail service configuration
-      launchd.user.agents.promtail = {
+      # Grafana Alloy service configuration (log shipper → Loki)
+      launchd.user.agents.alloy = {
         serviceConfig = {
           ProgramArguments = [
-            "/bin/sh" "-c"
-            "mkdir -p ${homeDir}/.promtail && exec /opt/homebrew/opt/promtail/bin/promtail -config.file=${promtailConfigFile}"
+            "/opt/homebrew/opt/grafana-alloy/bin/alloy"
+            "run"
+            "${alloyConfigFile}"
+            "--storage.path=${homeDir}/.alloy/data"
+            "--server.http.listen-addr=0.0.0.0:${toString cfg.alloy.port}"
           ];
           RunAtLoad = true;
           KeepAlive = true;
-          StandardOutPath = "/tmp/promtail.log";
-          StandardErrorPath = "/tmp/promtail.error.log";
+          StandardOutPath = "/tmp/alloy.log";
+          StandardErrorPath = "/tmp/alloy.error.log";
         };
       };
 
@@ -507,9 +510,9 @@
         # Loki
         /usr/libexec/ApplicationFirewall/socketfilterfw --add /opt/homebrew/opt/loki/bin/loki >/dev/null 2>&1 || true
         /usr/libexec/ApplicationFirewall/socketfilterfw --unblock /opt/homebrew/opt/loki/bin/loki >/dev/null 2>&1 || true
-        # Promtail
-        /usr/libexec/ApplicationFirewall/socketfilterfw --add /opt/homebrew/opt/promtail/bin/promtail >/dev/null 2>&1 || true
-        /usr/libexec/ApplicationFirewall/socketfilterfw --unblock /opt/homebrew/opt/promtail/bin/promtail >/dev/null 2>&1 || true
+        # Alloy (log shipper)
+        /usr/libexec/ApplicationFirewall/socketfilterfw --add /opt/homebrew/opt/grafana-alloy/bin/alloy >/dev/null 2>&1 || true
+        /usr/libexec/ApplicationFirewall/socketfilterfw --unblock /opt/homebrew/opt/grafana-alloy/bin/alloy >/dev/null 2>&1 || true
         # Blackbox Exporter
         /usr/libexec/ApplicationFirewall/socketfilterfw --add ${pkgs.prometheus-blackbox-exporter}/bin/blackbox_exporter >/dev/null 2>&1 || true
         /usr/libexec/ApplicationFirewall/socketfilterfw --unblock ${pkgs.prometheus-blackbox-exporter}/bin/blackbox_exporter >/dev/null 2>&1 || true
