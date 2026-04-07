@@ -45,9 +45,6 @@
     # === Enable Services ===
 
     services.ollama.enable = true;
-    services.ollama.keepAlive = "24h";
-    services.ollama.maxLoadedModels = 2;
-    services.ollama.numParallel = 4;
     services.open-webui.enable = true;
     services.monitoring.enable = true;
     services.smb-mount.enable = true;

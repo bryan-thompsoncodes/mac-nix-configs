@@ -35,19 +35,19 @@
 
       keepAlive = lib.mkOption {
         type = lib.types.str;
-        default = "5m";
+        default = "45m";
         description = "How long to keep models loaded (0 = unload immediately, -1 = forever)";
       };
 
       maxLoadedModels = lib.mkOption {
         type = lib.types.int;
-        default = 1;
+        default = 2;
         description = "Maximum number of models loaded concurrently";
       };
 
       numParallel = lib.mkOption {
         type = lib.types.int;
-        default = 1;
+        default = 4;
         description = "Maximum number of parallel requests per model";
       };
     };
