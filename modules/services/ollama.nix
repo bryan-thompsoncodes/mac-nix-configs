@@ -80,6 +80,17 @@
         /usr/libexec/ApplicationFirewall/socketfilterfw --add /opt/homebrew/bin/ollama >/dev/null 2>&1 || true
         /usr/libexec/ApplicationFirewall/socketfilterfw --unblock /opt/homebrew/bin/ollama >/dev/null 2>&1 || true
       '';
+
+      # Restart Ollama after rebuild to pick up any Homebrew binary upgrades.
+      # The launchd plist doesn't change when brew upgrades the binary, so
+      # nix-darwin won't restart the agent on its own.
+      system.activationScripts.ollama-restart.text = ''
+        uid=$(/usr/bin/id -u ${config.system.primaryUser})
+        if /bin/launchctl print "gui/$uid/org.nixos.ollama" &>/dev/null; then
+          echo "Restarting Ollama to pick up any binary updates..."
+          /bin/launchctl kickstart -k "gui/$uid/org.nixos.ollama"
+        fi
+      '';
     };
   };
 
